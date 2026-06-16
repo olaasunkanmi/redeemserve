@@ -1,35 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/Layout";
-import { VENDORS } from "@/lib/vendors";
-import {
-  ArrowRight,
-  MapPin,
-  Sparkles,
-  Users,
-  TrendingUp,
-  ShieldCheck,
-  Smartphone,
-  MessageCircle,
-  Store,
-  Search,
-  Clock,
-  CheckCircle2,
-} from "lucide-react";
+import { VENDORS, STATUS_META } from "@/lib/vendors";
+import { ArrowUpRight, MapPin, Quote } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "RedeemServe — Vendors & attendees, connected at Redemption City" },
+      { title: "RedeemServe — The City's Coordination Paper" },
       {
         name: "description",
         content:
-          "RedeemServe is the coordination platform for Redemption City events — helping vendors plan supply and helping attendees find food, transport and services in real time.",
+          "A live directory, AI demand forecasts and WhatsApp access — built for Redemption City's Holy Ghost Service and the RCCG Convention.",
       },
-      { property: "og:title", content: "RedeemServe — Connecting vendors and attendees at Redemption City" },
+      { property: "og:title", content: "RedeemServe — Vendors & attendees, connected" },
       {
         property: "og:description",
-        content:
-          "Live vendor directory, AI demand forecasting and WhatsApp access — built for the Holy Ghost Service and RCCG Convention.",
+        content: "The coordination paper for the world's largest monthly gathering.",
       },
     ],
   }),
@@ -39,366 +25,403 @@ export const Route = createFileRoute("/")({
 function Home() {
   return (
     <SiteLayout>
-      <Hero />
-      <Stats />
-      <ProblemSplit />
-      <HowItWorks />
-      <LiveDirectoryPreview />
-      <Monetization />
-      <CTA />
+      <Ticker />
+      <FrontPage />
+      <Directory />
+      <CapabilitiesSpread />
+      <DispatchPullquote />
+      <NumbersStrip />
+      <ClosingPlate />
     </SiteLayout>
   );
 }
 
-function Hero() {
-  return (
-    <section className="relative overflow-hidden bg-grain">
-      <div className="absolute inset-x-0 top-0 -z-10 h-[520px] bg-gradient-to-b from-secondary/70 to-transparent" />
-      <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:px-8 lg:pt-24">
-        <div className="lg:col-span-7">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-soft backdrop-blur">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-            </span>
-            Built for the Holy Ghost Service · 500K – 2M+ attendees monthly
-          </div>
+/* ──────────────────────────────────────────────────────────── */
+/*  Ticker — live vendor status, marquee-style                  */
+/* ──────────────────────────────────────────────────────────── */
 
-          <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight text-foreground text-balance sm:text-6xl lg:text-7xl">
-            Find what you need,
-            <br />
-            <span className="text-accent">when you need it.</span>
-          </h1>
-
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
-            Redemption City has the infrastructure of a city — but none of the discovery
-            tools a city provides. RedeemServe is the missing meeting point: a live
-            directory connecting vendors and attendees at every Holy Ghost Service and
-            Convention.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/discover"
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elev transition-transform hover:scale-[1.02]"
-            >
-              <Search className="h-4 w-4" />
-              Find a vendor
-            </Link>
-            <Link
-              to="/vendors"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground shadow-soft transition-colors hover:bg-secondary"
-            >
-              <Store className="h-4 w-4" />
-              Register as a vendor
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> No app download</div>
-            <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> WhatsApp access</div>
-            <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> AI demand forecasts</div>
-          </div>
-        </div>
-
-        <div className="relative lg:col-span-5">
-          <HeroCard />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function HeroCard() {
-  const featured = VENDORS.slice(0, 3);
-  return (
-    <div className="relative mx-auto w-full max-w-md">
-      <div className="absolute -inset-6 -z-10 rounded-[2rem] gradient-warm opacity-10 blur-2xl" />
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-elev">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Live near you</p>
-            <p className="font-display text-lg font-semibold">Zone A · Main Auditorium</p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse-dot" />
-            42 vendors open
+function Ticker() {
+  const items = VENDORS.slice(0, 8);
+  const row = (
+    <div className="flex shrink-0 items-center gap-10 px-6">
+      {items.map((v) => {
+        const meta = STATUS_META[v.status];
+        return (
+          <span key={v.id} className="flex items-center gap-2 text-[12px] uppercase tracking-[0.18em] text-cream/85">
+            <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+            <span className="font-semibold text-cream">{v.name}</span>
+            <span className="text-cream/55">— {meta.label} · Zone {v.zone}</span>
           </span>
-        </div>
-
-        <div className="mt-4 space-y-2.5">
-          {featured.map((v) => (
-            <div
-              key={v.id}
-              className="flex items-center gap-3 rounded-2xl border border-border/70 bg-background/60 p-3 transition-colors hover:border-accent/40"
-            >
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
-                <Store className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{v.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{v.location}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-medium text-foreground">★ {v.rating}</p>
-                <p className="text-[10px] text-muted-foreground">{v.category}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <Link
-          to="/discover"
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
-        >
-          Open full directory <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-
-      <div className="absolute -bottom-6 -left-6 hidden rotate-[-4deg] rounded-2xl border border-border bg-card p-4 shadow-elev sm:block">
-        <div className="flex items-center gap-2.5">
-          <div className="grid h-9 w-9 place-items-center rounded-full gradient-gold text-white">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">AI forecast</p>
-            <p className="text-sm font-semibold">+1,820 customers today</p>
-          </div>
-        </div>
+        );
+      })}
+    </div>
+  );
+  return (
+    <div className="overflow-hidden border-b border-emerald-deep/30 bg-emerald-deep py-2.5">
+      <div className="marquee-track flex w-max">
+        {row}
+        {row}
       </div>
     </div>
   );
 }
 
-function Stats() {
-  const stats = [
-    { value: "500K–2M+", label: "attendees per Holy Ghost Service" },
-    { value: "12+", label: "monthly events per year" },
-    { value: "Multi-day", label: "RCCG Annual Convention" },
-    { value: "City-scale", label: "grounds footprint" },
-  ];
+/* ──────────────────────────────────────────────────────────── */
+/*  Front page — editorial split                                */
+/* ──────────────────────────────────────────────────────────── */
+
+function FrontPage() {
   return (
-    <section className="border-y border-border/60 bg-card/50">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-8 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
-        {stats.map((s) => (
-          <div key={s.label} className="text-center">
-            <p className="font-display text-3xl font-semibold text-foreground sm:text-4xl">
-              {s.value}
-            </p>
-            <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">
-              {s.label}
+    <section className="paper border-b border-emerald-deep/15">
+      <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-8 sm:py-16">
+        <div className="grid gap-10 lg:grid-cols-12">
+          {/* Left rail — issue metadata */}
+          <aside className="lg:col-span-2">
+            <p className="font-display text-7xl leading-none text-emerald-deep">No. 06</p>
+            <div className="hairline-gold mt-3 w-12" />
+            <dl className="mt-6 space-y-4 text-[11px] uppercase tracking-[0.22em] text-emerald-deep/65">
+              <div>
+                <dt className="text-emerald-deep/40">Filed</dt>
+                <dd className="mt-1">May 2026</dd>
+              </div>
+              <div>
+                <dt className="text-emerald-deep/40">Dateline</dt>
+                <dd className="mt-1">Redemption City, Ogun</dd>
+              </div>
+              <div>
+                <dt className="text-emerald-deep/40">Service</dt>
+                <dd className="mt-1">Holy Ghost · Friday</dd>
+              </div>
+              <div>
+                <dt className="text-emerald-deep/40">Forecast</dt>
+                <dd className="mt-1 font-display text-2xl normal-case tracking-normal text-emerald-deep">
+                  ~1.4M
+                </dd>
+              </div>
+            </dl>
+          </aside>
+
+          {/* Lede — main story */}
+          <div className="lg:col-span-7">
+            <p className="kicker">Cover Story · The Solution</p>
+            <h1 className="mt-4 font-display text-[56px] leading-[0.95] tracking-tight text-emerald-deep text-balance sm:text-[88px]">
+              The directory the city
+              <br />
+              has been{" "}
+              <span className="font-italic-serif text-gold">waiting for.</span>
+            </h1>
+
+            <div className="mt-8 grid gap-6 sm:grid-cols-2">
+              <p className="drop-cap text-[15px] leading-7 text-emerald-deep/85">
+                RedeemServe is a live coordination layer for Redemption City — a single,
+                trusted record of who is open, where they are, and what they have left.
+                Vendors arrive prepared. Attendees arrive informed. The world's largest
+                monthly gathering finally has the discovery tools a city of its size
+                deserves.
+              </p>
+              <p className="text-[15px] leading-7 text-emerald-deep/75">
+                Built around the rhythms of the Holy Ghost Service and the annual RCCG
+                Convention, the platform combines a real-time vendor map, AI demand
+                forecasting, automated onboarding, and a WhatsApp interface for those
+                without data. No app to download. No friction. Just clarity for both
+                sides of the meeting point.
+              </p>
+            </div>
+
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              <Link
+                to="/discover"
+                className="group inline-flex items-center gap-2 border-b-2 border-emerald-deep px-1 pb-1 font-display text-xl text-emerald-deep transition-all hover:border-gold hover:text-gold"
+              >
+                Open the directory
+                <ArrowUpRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+              <Link
+                to="/vendors"
+                className="group inline-flex items-center gap-2 border-b-2 border-transparent px-1 pb-1 font-display text-xl text-emerald-deep/70 transition-all hover:border-gold hover:text-emerald-deep"
+              >
+                Register as a vendor
+                <ArrowUpRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Right column — featured plate */}
+          <div className="lg:col-span-3">
+            <FeaturedPlate />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FeaturedPlate() {
+  return (
+    <div className="border border-emerald-deep/20 bg-cream/60 p-5">
+      <p className="kicker">Now live · Zone A</p>
+      <div className="hairline-gold mt-2 w-10" />
+      <p className="mt-4 font-display text-2xl leading-tight text-emerald-deep">
+        42 vendors trading at the Main Auditorium right now.
+      </p>
+
+      <ul className="mt-5 space-y-3">
+        {VENDORS.slice(0, 4).map((v, i) => {
+          const meta = STATUS_META[v.status];
+          return (
+            <li key={v.id} className="flex items-start gap-3 border-t border-emerald-deep/10 pt-3 first:border-t-0 first:pt-0">
+              <span className="font-display text-sm tabular text-emerald-deep/50">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-emerald-deep">{v.name}</p>
+                <p className="mt-0.5 text-[12px] text-emerald-deep/60">{v.popularItems[0]} · ★ {v.rating}</p>
+              </div>
+              <span className={`h-1.5 w-1.5 translate-y-1.5 rounded-full ${meta.dot}`} />
+            </li>
+          );
+        })}
+      </ul>
+
+      <Link
+        to="/discover"
+        className="mt-5 block border-t-2 border-emerald-deep pt-3 text-center font-display text-sm uppercase tracking-[0.2em] text-emerald-deep hover:text-gold"
+      >
+        See all 42 →
+      </Link>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/*  The Directory — featured plate grid                         */
+/* ──────────────────────────────────────────────────────────── */
+
+function Directory() {
+  const featured = VENDORS.slice(0, 6);
+  return (
+    <section className="border-b border-emerald-deep/15">
+      <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8 sm:py-20">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="kicker">Section II · The Directory</p>
+            <h2 className="mt-3 font-display text-5xl leading-[0.95] tracking-tight text-emerald-deep sm:text-6xl">
+              Who is open, <span className="font-italic-serif text-gold">right now.</span>
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-emerald-deep/70">
+              A living index of every verified vendor on the grounds. Filter by zone, by
+              category, by what's actually in stock at this minute.
             </p>
           </div>
-        ))}
+          <Link
+            to="/discover"
+            className="group inline-flex items-center gap-2 border-b border-emerald-deep pb-1 font-display text-lg text-emerald-deep hover:border-gold hover:text-gold"
+          >
+            Browse all vendors <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+        </div>
+
+        <div className="rule-thick mt-8" />
+
+        {/* Editorial grid: 1 large + 5 smaller */}
+        <div className="mt-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+          <DirectoryEntry vendor={featured[0]} large index={1} />
+          {featured.slice(1).map((v, i) => (
+            <DirectoryEntry key={v.id} vendor={v} index={i + 2} />
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-function ProblemSplit() {
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">The Gap</p>
-        <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-          A vendor 200m away is invisible to an attendee who needs them.
-        </h2>
-        <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-          At every Holy Ghost Service, supply and demand exist in the same space —
-          but never connect efficiently. RedeemServe closes that gap.
-        </p>
-      </div>
-
-      <div className="mt-14 grid gap-6 lg:grid-cols-2">
-        <ProblemCard
-          tag="For Vendors"
-          icon={<Store className="h-5 w-5" />}
-          title="Guessing instead of planning"
-          points={[
-            "Food vendors sell out by 10am — no demand signal to plan against.",
-            "Transport operators cluster at the wrong gates and miss the rush.",
-            "New vendors arrive with no onboarding, no location, no briefing.",
-            "Specialty services (repair, medical) go entirely undiscovered.",
-          ]}
-        />
-        <ProblemCard
-          tag="For Attendees"
-          icon={<Users className="h-5 w-5" />}
-          title="Wandering through a city of millions"
-          points={[
-            "No directory, no map, no way to know what is available.",
-            "Families and elderly worshippers walk in circles looking for food.",
-            "International visitors arrive without any local knowledge.",
-            "First-timers go hungry — or settle for less than they need.",
-          ]}
-        />
-      </div>
-    </section>
-  );
-}
-
-function ProblemCard({
-  tag,
-  title,
-  points,
-  icon,
+function DirectoryEntry({
+  vendor,
+  large = false,
+  index,
 }: {
-  tag: string;
-  title: string;
-  points: string[];
-  icon: React.ReactNode;
+  vendor: (typeof VENDORS)[number];
+  large?: boolean;
+  index: number;
+}) {
+  const meta = STATUS_META[vendor.status];
+  return (
+    <Link
+      to="/discover"
+      className={`group block ${large ? "md:col-span-2 lg:row-span-2" : ""}`}
+    >
+      <div className="flex items-baseline justify-between">
+        <span className="font-display text-sm tabular text-emerald-deep/40">
+          {String(index).padStart(2, "0")} / {String(VENDORS.length).padStart(2, "0")}
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.22em] text-emerald-deep/55">
+          Zone {vendor.zone}
+        </span>
+      </div>
+      <div className="hairline mt-2" />
+      <p className="kicker mt-4">{vendor.category}</p>
+      <h3
+        className={`mt-2 font-display tracking-tight text-emerald-deep transition-colors group-hover:text-gold ${
+          large ? "text-5xl leading-[0.95] sm:text-6xl" : "text-2xl leading-tight"
+        }`}
+      >
+        {vendor.name}
+      </h3>
+      <p className={`mt-3 leading-relaxed text-emerald-deep/75 ${large ? "text-base max-w-md" : "text-sm"}`}>
+        {vendor.description}
+      </p>
+
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] uppercase tracking-[0.18em] text-emerald-deep/60">
+        <span className="flex items-center gap-1.5">
+          <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+          {meta.label}
+        </span>
+        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {vendor.location}</span>
+        <span className="tabular">★ {vendor.rating}</span>
+      </div>
+    </Link>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/*  Capabilities spread — two-page editorial                    */
+/* ──────────────────────────────────────────────────────────── */
+
+const VENDOR_CAPS = [
+  { num: "01", title: "Pre-event registration", body: "Claim your zone, category and capacity ahead of every service. Be listed before the gates even open." },
+  { num: "02", title: "AI demand forecasting", body: "Trained on RCCG event patterns. Know — by hour, by category — what to prepare." },
+  { num: "03", title: "Live storefront", body: "A profile attendees can find, with live stock and a direct WhatsApp line." },
+  { num: "04", title: "AI onboarding briefing", body: "A personalised video the day you register. No more arriving blind." },
+  { num: "05", title: "Post-event report", body: "What sold, what didn't, what to bring next month. Plain numbers, no fluff." },
+];
+
+const ATTENDEE_CAPS = [
+  { num: "01", title: "Live grounds map", body: "Every active vendor, every zone — visible before you take a step." },
+  { num: "02", title: "Real-time stock", body: "Sold out at one stall? The next one over surfaces automatically." },
+  { num: "03", title: "Pre-arrival planning", body: "Browse vendors from home. Arrive informed, not improvising." },
+  { num: "04", title: "WhatsApp access", body: "No data? Text RedeemServe and get the directory by message." },
+  { num: "05", title: "Saved itineraries", body: "Bookmark vendors for your family, your team, your travel group." },
+];
+
+function CapabilitiesSpread() {
+  return (
+    <section className="paper border-b border-emerald-deep/15">
+      <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8 sm:py-20">
+        <div className="text-center">
+          <p className="kicker">Section III · The Apparatus</p>
+          <h2 className="mt-3 font-display text-5xl leading-[0.95] tracking-tight text-emerald-deep sm:text-6xl">
+            One paper. <span className="font-italic-serif text-gold">Two readerships.</span>
+          </h2>
+        </div>
+
+        <div className="rule-thick mx-auto mt-8 max-w-xs" />
+
+        <div className="mt-14 grid gap-14 lg:grid-cols-2 lg:gap-20">
+          <CapColumn label="For the Vendor" items={VENDOR_CAPS} cta={{ label: "Open the vendor portal", to: "/vendors" }} />
+          <div className="hidden border-l border-emerald-deep/15 lg:block" style={{ marginLeft: "-2.5rem" }} />
+          <div className="lg:-ml-10">
+            <CapColumn label="For the Attendee" items={ATTENDEE_CAPS} cta={{ label: "Open the directory", to: "/discover" }} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CapColumn({
+  label,
+  items,
+  cta,
+}: {
+  label: string;
+  items: { num: string; title: string; body: string }[];
+  cta: { label: string; to: string };
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-soft transition-shadow hover:shadow-elev">
-      <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary">
-          {icon}
-        </span>
-        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">{tag}</span>
-      </div>
-      <h3 className="mt-5 font-display text-2xl font-semibold tracking-tight">{title}</h3>
-      <ul className="mt-5 space-y-3">
-        {points.map((p) => (
-          <li key={p} className="flex gap-3 text-sm leading-relaxed text-muted-foreground">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-            <span>{p}</span>
+    <div>
+      <p className="font-italic-serif text-2xl text-emerald-deep">{label}</p>
+      <div className="hairline-gold mt-3 w-12" />
+
+      <ol className="mt-8 space-y-7">
+        {items.map((i) => (
+          <li key={i.num} className="grid grid-cols-[auto_1fr] gap-x-6 border-t border-emerald-deep/10 pt-5 first:border-t-0 first:pt-0">
+            <span className="font-display text-3xl tabular text-gold leading-none">{i.num}</span>
+            <div>
+              <h3 className="font-display text-2xl leading-tight text-emerald-deep">{i.title}</h3>
+              <p className="mt-2 text-[15px] leading-7 text-emerald-deep/75">{i.body}</p>
+            </div>
           </li>
         ))}
-      </ul>
+      </ol>
+
+      <Link
+        to={cta.to}
+        className="mt-10 inline-flex items-center gap-2 border-b border-emerald-deep pb-1 font-display text-lg text-emerald-deep hover:border-gold hover:text-gold"
+      >
+        {cta.label} <ArrowUpRight className="h-4 w-4" />
+      </Link>
     </div>
   );
 }
 
-function HowItWorks() {
-  const vendorSteps = [
-    { icon: <ShieldCheck className="h-5 w-5" />, title: "Pre-event registration", body: "Register your category, location and capacity ahead of each Holy Ghost Service." },
-    { icon: <TrendingUp className="h-5 w-5" />, title: "AI demand forecasting", body: "Get a predicted demand range for your category, trained on RCCG event patterns." },
-    { icon: <Store className="h-5 w-5" />, title: "Digital storefront", body: "A simple, searchable profile showing what you sell and where you are." },
-    { icon: <Sparkles className="h-5 w-5" />, title: "Automated onboarding", body: "Personalised AI video briefing — no more figuring it out on event day." },
-  ];
-  const attendeeSteps = [
-    { icon: <MapPin className="h-5 w-5" />, title: "Live vendor map", body: "See every active vendor on the grounds — by zone, category and availability." },
-    { icon: <Clock className="h-5 w-5" />, title: "Real-time stock", body: "When a vendor sells out, the directory updates so you don't waste a trip." },
-    { icon: <Smartphone className="h-5 w-5" />, title: "Pre-arrival planning", body: "Browse before you leave home — arrive informed, not guessing." },
-    { icon: <MessageCircle className="h-5 w-5" />, title: "WhatsApp access", body: "No data? Get vendor info via WhatsApp — no app download required." },
-  ];
-  return (
-    <section className="bg-secondary/40 py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">How it works</p>
-          <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            One platform. Both sides served.
-          </h2>
-        </div>
+/* ──────────────────────────────────────────────────────────── */
+/*  Dispatch pull quote                                          */
+/* ──────────────────────────────────────────────────────────── */
 
-        <div className="mt-14 grid gap-8 lg:grid-cols-2">
-          <FeatureColumn title="For Vendors" steps={vendorSteps} accent />
-          <FeatureColumn title="For Attendees" steps={attendeeSteps} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeatureColumn({
-  title,
-  steps,
-  accent = false,
-}: {
-  title: string;
-  steps: { icon: React.ReactNode; title: string; body: string }[];
-  accent?: boolean;
-}) {
+function DispatchPullquote() {
   return (
-    <div className={`rounded-3xl border border-border bg-card p-8 shadow-soft ${accent ? "lg:translate-y-2" : ""}`}>
-      <h3 className="font-display text-2xl font-semibold tracking-tight">{title}</h3>
-      <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        {steps.map((s) => (
-          <div key={s.title} className="rounded-2xl border border-border/60 bg-background/60 p-5">
-            <span className={`grid h-10 w-10 place-items-center rounded-xl ${accent ? "gradient-warm text-cream" : "bg-secondary text-primary"}`}>
-              {s.icon}
-            </span>
-            <p className="mt-4 font-semibold text-foreground">{s.title}</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
+    <section className="ink-grad text-cream">
+      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-8 sm:py-28">
+        <div className="grid gap-10 lg:grid-cols-12 lg:items-start">
+          <div className="lg:col-span-3">
+            <Quote className="h-12 w-12 text-gold" strokeWidth={1} />
+            <p className="mt-6 text-[11px] uppercase tracking-[0.28em] text-cream/55">
+              Field Dispatch
+              <br />
+              Holy Ghost Service · Mar 2026
+            </p>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LiveDirectoryPreview() {
-  const sample = VENDORS.slice(0, 6);
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="max-w-xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">Live directory</p>
-          <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            Every vendor. Every zone. Real-time.
-          </h2>
+          <blockquote className="lg:col-span-9">
+            <p className="font-display text-3xl leading-[1.15] text-balance text-cream sm:text-5xl">
+              "A vendor two hundred metres away is{" "}
+              <span className="text-gold font-italic-serif">invisible</span> to an
+              attendee who needs them. Supply and demand exist in the same place —
+              they simply never meet. That is the gap RedeemServe closes."
+            </p>
+            <footer className="mt-8 flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-cream/60">
+              <span className="h-px w-12 bg-gold" />
+              From the founding brief
+            </footer>
+          </blockquote>
         </div>
-        <Link
-          to="/discover"
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold shadow-soft hover:bg-secondary"
-        >
-          Open directory <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-
-      <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {sample.map((v) => (
-          <Link
-            key={v.id}
-            to="/discover"
-            className="group rounded-3xl border border-border bg-card p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-elev"
-          >
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                {v.category}
-              </span>
-              <span className="text-xs text-muted-foreground">Zone {v.zone}</span>
-            </div>
-            <h3 className="mt-4 font-display text-xl font-semibold leading-tight">{v.name}</h3>
-            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{v.description}</p>
-            <div className="mt-5 flex items-center justify-between text-sm">
-              <span className="font-medium text-foreground">{v.priceRange}</span>
-              <span className="text-amber-600">★ {v.rating}</span>
-            </div>
-          </Link>
-        ))}
       </div>
     </section>
   );
 }
 
-function Monetization() {
-  const streams = [
-    { title: "Vendor registration", body: "Small flat fee per event for a verified listing.", when: "From launch" },
-    { title: "Transaction commission", body: "5–7% on bookings and pre-orders made through RedeemServe.", when: "From launch" },
-    { title: "Verified Vendor subscription", body: "Monthly ₦5,000 – ₦15,000 for priority placement and demand reports.", when: "Month 3+" },
-    { title: "Premium analytics", body: "Detailed demand forecasts and post-event performance dashboards.", when: "Month 6+" },
+/* ──────────────────────────────────────────────────────────── */
+/*  Numbers strip — typographic, not "stat cards"                */
+/* ──────────────────────────────────────────────────────────── */
+
+function NumbersStrip() {
+  const numbers = [
+    { value: "1.4M", label: "expected attendees · next service" },
+    { value: "12", label: "monthly events · per calendar year" },
+    { value: "42", label: "verified vendors · Zone A right now" },
+    { value: "5", label: "languages supported · over WhatsApp" },
   ];
   return (
-    <section className="bg-grain">
-      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">Sustainable by design</p>
-          <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            A model that grows with the vendors it serves.
-          </h2>
-        </div>
-        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {streams.map((s, i) => (
-            <div key={s.title} className="rounded-3xl border border-border bg-card p-6 shadow-soft">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full gradient-warm text-cream font-display text-sm font-semibold">
-                {i + 1}
-              </div>
-              <p className="mt-4 font-display text-lg font-semibold">{s.title}</p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
-              <p className="mt-4 text-xs font-medium uppercase tracking-wider text-accent">{s.when}</p>
+    <section className="border-b border-emerald-deep/15 bg-cream">
+      <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-8">
+        <div className="grid gap-y-10 sm:grid-cols-2 sm:divide-x sm:divide-emerald-deep/15 lg:grid-cols-4">
+          {numbers.map((n) => (
+            <div key={n.label} className="px-2 text-center sm:px-6">
+              <p className="font-display text-6xl tabular text-emerald-deep sm:text-7xl">
+                {n.value}
+              </p>
+              <p className="mt-2 text-[11px] uppercase tracking-[0.22em] text-emerald-deep/55">
+                {n.label}
+              </p>
             </div>
           ))}
         </div>
@@ -407,36 +430,42 @@ function Monetization() {
   );
 }
 
-function CTA() {
+/* ──────────────────────────────────────────────────────────── */
+/*  Closing plate                                                */
+/* ──────────────────────────────────────────────────────────── */
+
+function ClosingPlate() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-      <div className="relative overflow-hidden rounded-[2rem] gradient-warm p-10 text-cream shadow-elev sm:p-14">
-        <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-accent/30 blur-3xl" />
-        <div className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-gold/20 blur-3xl" />
-        <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
-          <div>
-            <h2 className="font-display text-4xl font-semibold leading-tight text-balance sm:text-5xl">
-              Be ready for the next Holy Ghost Service.
-            </h2>
-            <p className="mt-4 max-w-lg text-base/relaxed text-cream/80">
-              Whether you're serving thousands or simply trying to find a meal — RedeemServe
-              gets you there. Join the platform built for Redemption City.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3 lg:justify-end">
-            <Link
-              to="/vendors"
-              className="inline-flex items-center gap-2 rounded-full bg-cream px-6 py-3 text-sm font-semibold text-primary shadow-elev transition-transform hover:scale-[1.02]"
-            >
-              <Store className="h-4 w-4" /> I'm a vendor
-            </Link>
-            <Link
-              to="/discover"
-              className="inline-flex items-center gap-2 rounded-full border border-cream/40 bg-transparent px-6 py-3 text-sm font-semibold text-cream hover:bg-cream/10"
-            >
-              <Search className="h-4 w-4" /> I'm an attendee
-            </Link>
-          </div>
+    <section className="mx-auto max-w-[1400px] px-4 py-20 sm:px-8 sm:py-24">
+      <div className="grid gap-10 border-y-2 border-emerald-deep py-14 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <p className="kicker">The Subscription · Free Forever</p>
+          <h2 className="mt-3 font-display text-5xl leading-[0.95] tracking-tight text-emerald-deep text-balance sm:text-7xl">
+            Be ready for the
+            <br />
+            next <span className="font-italic-serif text-gold">Holy Ghost</span> Service.
+          </h2>
+          <p className="mt-6 max-w-xl text-base leading-7 text-emerald-deep/75">
+            Whether you're serving thousands of plates or simply looking for one — pick
+            your side and join. No accounts to verify endlessly. No noise. Just the
+            directory you needed last month.
+          </p>
+        </div>
+        <div className="flex flex-col justify-end gap-3 lg:col-span-5 lg:items-end">
+          <Link
+            to="/vendors"
+            className="group inline-flex items-center justify-between gap-6 border-2 border-emerald-deep bg-emerald-deep px-7 py-4 text-cream transition-colors hover:bg-gold hover:border-gold hover:text-emerald-deep lg:min-w-[340px]"
+          >
+            <span className="font-display text-xl">I am a vendor</span>
+            <ArrowUpRight className="h-5 w-5" />
+          </Link>
+          <Link
+            to="/discover"
+            className="group inline-flex items-center justify-between gap-6 border-2 border-emerald-deep px-7 py-4 text-emerald-deep transition-colors hover:bg-emerald-deep hover:text-cream lg:min-w-[340px]"
+          >
+            <span className="font-display text-xl">I am an attendee</span>
+            <ArrowUpRight className="h-5 w-5" />
+          </Link>
         </div>
       </div>
     </section>
