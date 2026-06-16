@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VendorsRouteImport } from './routes/vendors'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const VendorsRoute = VendorsRouteImport.update({
   id: '/vendors',
   path: '/vendors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiscoverRoute = DiscoverRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/discover': typeof DiscoverRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendors': typeof VendorsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/discover': typeof DiscoverRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendors': typeof VendorsRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/discover': typeof DiscoverRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendors': typeof VendorsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/discover' | '/vendors'
+  fullPaths: '/' | '/about' | '/discover' | '/sitemap.xml' | '/vendors'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/discover' | '/vendors'
-  id: '__root__' | '/' | '/about' | '/discover' | '/vendors'
+  to: '/' | '/about' | '/discover' | '/sitemap.xml' | '/vendors'
+  id: '__root__' | '/' | '/about' | '/discover' | '/sitemap.xml' | '/vendors'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   DiscoverRoute: typeof DiscoverRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VendorsRoute: typeof VendorsRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/vendors'
       fullPath: '/vendors'
       preLoaderRoute: typeof VendorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/discover': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   DiscoverRoute: DiscoverRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   VendorsRoute: VendorsRoute,
 }
 export const routeTree = rootRouteImport
