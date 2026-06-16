@@ -2,45 +2,66 @@ import { Link } from "@tanstack/react-router";
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-border/60 bg-secondary/40">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-4 lg:px-8">
-        <div className="lg:col-span-2">
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-xl gradient-warm text-cream">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4"/><path d="M5 8h14l-1.5 11a2 2 0 0 1-2 1.7h-9a2 2 0 0 1-2-1.7L5 8Z"/><path d="M9 12h6"/></svg>
-            </span>
-            <span className="font-display text-xl font-semibold">
-              Redeem<span className="text-accent">Serve</span>
-            </span>
+    <footer className="mt-20 border-t-2 border-emerald-deep/20">
+      <div className="mx-auto max-w-[1400px] px-4 py-14 sm:px-8">
+        <div className="grid gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <div className="font-display text-4xl text-emerald-deep">
+              Redeem<span className="font-italic-serif text-gold">Serve</span>
+            </div>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-emerald-deep/70">
+              A coordination paper for Redemption City — printed, in spirit, every
+              month. We close the gap between vendors who serve and attendees who
+              search.
+            </p>
+            <div className="mt-6 flex items-center gap-3 text-[10px] uppercase tracking-[0.28em] text-emerald-deep/50">
+              <span>Filed from Ogun State</span>
+              <span className="h-px w-8 bg-emerald-deep/30" />
+              <span>Kingdom Hack 3.0</span>
+            </div>
           </div>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
-            Connecting vendors and attendees at Redemption City events — closing the
-            coordination gap at the world's largest monthly gathering, one event at a time.
-          </p>
+
+          <FooterCol title="Sections" items={[
+            { label: "The Front Page", to: "/" },
+            { label: "Vendor Directory", to: "/discover" },
+            { label: "Vendor Portal", to: "/vendors" },
+            { label: "Masthead & Mission", to: "/about" },
+          ]} />
+          <FooterCol title="For Vendors" items={[
+            { label: "Register for next service", to: "/vendors" },
+            { label: "Demand forecasts", to: "/vendors" },
+            { label: "Onboarding briefing", to: "/vendors" },
+            { label: "Post-event reports", to: "/vendors" },
+          ]} />
+          <FooterCol title="For Attendees" items={[
+            { label: "Find food", to: "/discover" },
+            { label: "Find transport", to: "/discover" },
+            { label: "Find medical", to: "/discover" },
+            { label: "WhatsApp directory", to: "/discover" },
+          ]} />
         </div>
-        <div>
-          <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-foreground">Platform</h4>
-          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/discover" className="hover:text-foreground">Discover Vendors</Link></li>
-            <li><Link to="/vendors" className="hover:text-foreground">Vendor Portal</Link></li>
-            <li><Link to="/about" className="hover:text-foreground">About</Link></li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-foreground">Contact</h4>
-          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <li>Redemption City, Ogun State</li>
-            <li>hello@redeemserve.app</li>
-            <li>WhatsApp: +234 800 000 0000</li>
-          </ul>
-        </div>
-      </div>
-      <div className="border-t border-border/60">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
-          <p>© {new Date().getFullYear()} RedeemServe. Built for Kingdom Hack 3.0.</p>
-          <p>Made with care for the RCCG community.</p>
+
+        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-emerald-deep/15 pt-6 text-[11px] uppercase tracking-[0.22em] text-emerald-deep/55 sm:flex-row sm:items-center">
+          <span>© {new Date().getFullYear()} RedeemServe · All rights reserved</span>
+          <span>hello@redeemserve.app · WhatsApp +234 800 000 0000</span>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterCol({ title, items }: { title: string; items: { label: string; to: string }[] }) {
+  return (
+    <div className="lg:col-span-2">
+      <p className="font-display text-xs uppercase tracking-[0.28em] text-emerald-deep">
+        {title}
+      </p>
+      <div className="hairline-gold mt-2 w-8" />
+      <ul className="mt-4 space-y-2.5 text-sm text-emerald-deep/75">
+        {items.map((i) => (
+          <li key={i.label}><Link to={i.to} className="hover:text-emerald-deep hover:underline underline-offset-4 decoration-gold">{i.label}</Link></li>
+        ))}
+      </ul>
+    </div>
   );
 }
