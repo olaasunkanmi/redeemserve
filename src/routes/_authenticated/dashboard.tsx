@@ -71,13 +71,78 @@ function Dashboard() {
       {!vendor || editing ? (
         <VendorForm existing={editing ? vendor : null} ownerId={user!.id} onDone={() => { setEditing(false); load(); }} />
       ) : (
-        <VendorDashboard vendor={vendor} onEdit={() => setEditing(true)} onDelete={async () => {
-          if (!confirm("Delete this vendor listing?")) return;
-          await supabase.from("vendors").delete().eq("id", vendor.id);
-          load();
-        }} />
+        <>
+          <VendorOrdersPanel vendorId={vendor.id} />
+          <VendorDashboard vendor={vendor} onEdit={() => setEditing(true)} onDelete={async () => {
+            if (!confirm("Delete this vendor listing?")) return;
+            await supabase.from("vendors").delete().eq("id", vendor.id);
+            load();
+          }} />
+        </>
       )}
     </SiteLayout>
+  );
+}
+
+function VendorOrdersPanel({ vendorId }: { vendorId: string }) {
+  const [orders, setOrders] = useState<any[]>([]);
+  async function load() {
+    const { data } = await supabase.from("orders" as any)
+      .select("*, order_items(*)").eq("vendor_id", vendorId)
+      .order("created_at", { ascending: false }).limit(20);
+    setOrders((data as any) ?? []);
+  }
+  useEffect(() => {
+    load();
+    const ch = supabase.channel(`vendor-orders-${vendorId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `vendor_id=eq.${vendorId}` }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [vendorId]);
+  async function setStatus(id: string, status: string) {
+    await supabase.from("orders" as any).update({ status }).eq("id", id);
+  }
+  const pending = orders.filter((o) => o.status === "pending").length;
+  return (
+    <section className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-8">
+      <div className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-xl font-extrabold text-emerald-deep">Incoming orders</h2>
+            <p className="text-xs text-emerald-deep/60">Live · updates instantly when new orders arrive</p>
+          </div>
+          {pending > 0 && <span className="inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1 text-xs font-bold text-emerald-deep">{pending} new</span>}
+        </div>
+        {orders.length === 0 ? (
+          <p className="mt-6 text-sm text-emerald-deep/55">No orders yet. Share your vendor link to start receiving them.</p>
+        ) : (
+          <div className="mt-6 space-y-3">
+            {orders.map((o) => (
+              <div key={o.id} className="rounded-xl border border-emerald-deep/10 bg-cream p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-deep">{o.buyer_name || "Buyer"} · {o.buyer_phone}</p>
+                    <p className="text-xs text-emerald-deep/60">{new Date(o.created_at).toLocaleString()} · Zone {o.pickup_zone}</p>
+                  </div>
+                  <span className="rounded-full bg-emerald-soft px-3 py-1 text-[11px] font-semibold uppercase text-emerald-deep">{o.status}</span>
+                </div>
+                <ul className="mt-3 text-sm text-emerald-deep/85">
+                  {(o.order_items ?? []).map((i: any) => <li key={i.id}>• {i.quantity}× {i.name} — ₦{(i.unit_price_naira * i.quantity).toLocaleString()}</li>)}
+                </ul>
+                {o.notes && <p className="mt-2 text-xs text-emerald-deep/60">Note: {o.notes}</p>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {o.status === "pending" && <button onClick={() => setStatus(o.id, "accepted")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Accept</button>}
+                  {o.status === "accepted" && <button onClick={() => setStatus(o.id, "ready")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Mark ready</button>}
+                  {o.status === "ready" && <button onClick={() => setStatus(o.id, "delivered")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Mark delivered</button>}
+                  {o.status !== "cancelled" && o.status !== "delivered" && <button onClick={() => setStatus(o.id, "cancelled")} className="rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold text-rose-600">Cancel</button>}
+                  <span className="ml-auto font-display text-sm font-bold text-emerald-deep tabular">₦{o.total_naira.toLocaleString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 

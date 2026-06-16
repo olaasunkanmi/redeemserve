@@ -1,18 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, Store, Search, User } from "lucide-react";
+import { Menu, X, Store, Search, User, ShoppingBag } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useCart } from "@/lib/cart";
 
 const links = [
   { to: "/", label: "Home" },
   { to: "/discover", label: "Browse vendors" },
-  { to: "/dashboard", label: "Sell on RedeemServe" },
+  { to: "/orders", label: "My orders" },
+  { to: "/dashboard", label: "Sell" },
   { to: "/about", label: "About" },
 ];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const { count } = useCart();
 
   return (
     <header className="sticky top-0 z-40 border-b border-emerald-deep/10 bg-cream/85 backdrop-blur">
@@ -47,6 +50,10 @@ export function Navbar() {
           >
             <Search className="h-4 w-4" />
             <span>Search vendors…</span>
+          </Link>
+          <Link to="/checkout" className="relative grid h-9 w-9 place-items-center rounded-full border border-emerald-deep/15 text-emerald-deep hover:bg-emerald-soft" aria-label="Cart">
+            <ShoppingBag className="h-4 w-4" />
+            {count > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-emerald-deep">{count}</span>}
           </Link>
           {user ? (
             <Link

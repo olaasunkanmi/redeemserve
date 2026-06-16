@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
+import { LiveStats } from "@/components/site/LiveStats";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, VENDOR_CATEGORIES } from "@/lib/vendors";
 import {
@@ -134,6 +135,7 @@ function Home() {
           </div>
         </div>
       </section>
+      <LiveStats />
 
       {/* CATEGORIES */}
       <section className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8">
@@ -263,7 +265,7 @@ function VendorCard({ v }: { v: V }) {
   const Icon = CATEGORY_ICONS[v.category] ?? Store;
   return (
     <Link
-      to="/discover"
+      to="/vendor/$id" params={{ id: v.id }}
       className="group rounded-2xl border border-emerald-deep/10 bg-surface p-5 shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5"
     >
       <div className="flex items-start justify-between gap-3">

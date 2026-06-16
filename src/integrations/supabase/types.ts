@@ -14,6 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorites: {
+        Row: {
+          created_at: string
+          user_id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          order_id: string
+          quantity: number
+          unit_price_naira: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          order_id: string
+          quantity?: number
+          unit_price_naira?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          order_id?: string
+          quantity?: number
+          unit_price_naira?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          buyer_id: string
+          buyer_name: string
+          buyer_phone: string
+          created_at: string
+          id: string
+          notes: string
+          pickup_zone: string
+          status: string
+          total_naira: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          buyer_id: string
+          buyer_name?: string
+          buyer_phone?: string
+          created_at?: string
+          id?: string
+          notes?: string
+          pickup_zone?: string
+          status?: string
+          total_naira?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          buyer_id?: string
+          buyer_name?: string
+          buyer_phone?: string
+          created_at?: string
+          id?: string
+          notes?: string
+          pickup_zone?: string
+          status?: string
+          total_naira?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -38,6 +149,41 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          body: string
+          buyer_id: string
+          created_at: string
+          id: string
+          rating: number
+          vendor_id: string
+        }
+        Insert: {
+          body?: string
+          buyer_id: string
+          created_at?: string
+          id?: string
+          rating: number
+          vendor_id: string
+        }
+        Update: {
+          body?: string
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -58,6 +204,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vendor_media: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          sort_order: number
+          url: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          sort_order?: number
+          url: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          sort_order?: number
+          url?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_media_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vendors: {
         Row: {
