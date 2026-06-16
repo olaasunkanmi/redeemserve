@@ -1,48 +1,49 @@
 import { Link } from "@tanstack/react-router";
+import { Store } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t-2 border-emerald-deep/20">
+    <footer className="mt-24 border-t border-emerald-deep/10 bg-surface">
       <div className="mx-auto max-w-[1400px] px-4 py-14 sm:px-8">
         <div className="grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-5">
-            <div className="font-display text-4xl text-emerald-deep">
-              Redeem<span className="font-italic-serif text-gold">Serve</span>
-            </div>
+            <Link to="/" className="flex items-center gap-2">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-deep text-cream">
+                <Store className="h-4 w-4" />
+              </span>
+              <span className="font-display text-xl font-extrabold tracking-tight text-emerald-deep">
+                Redeem<span className="text-gold">Serve</span>
+              </span>
+            </Link>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-emerald-deep/70">
-              A coordination paper for Redemption City — printed, in spirit, every
-              month. We close the gap between vendors who serve and attendees who
-              search.
+              The multivendor marketplace for Redemption City events — connecting
+              food sellers, transport operators, traders and service providers with
+              the millions who gather for the Holy Ghost Service.
             </p>
-            <div className="mt-6 flex items-center gap-3 text-[10px] uppercase tracking-[0.28em] text-emerald-deep/50">
-              <span>Filed from Ogun State</span>
-              <span className="h-px w-8 bg-emerald-deep/30" />
-              <span>Kingdom Hack 3.0</span>
-            </div>
           </div>
 
-          <FooterCol title="Sections" items={[
-            { label: "The Front Page", to: "/" },
-            { label: "Vendor Directory", to: "/discover" },
-            { label: "Vendor Portal", to: "/vendors" },
-            { label: "Masthead & Mission", to: "/about" },
+          <FooterCol title="Marketplace" items={[
+            { label: "Browse vendors", to: "/discover" },
+            { label: "Categories", to: "/discover" },
+            { label: "Grounds map", to: "/discover" },
+            { label: "About RedeemServe", to: "/about" },
           ]} />
-          <FooterCol title="For Vendors" items={[
-            { label: "Register for next service", to: "/vendors" },
-            { label: "Demand forecasts", to: "/vendors" },
-            { label: "Onboarding briefing", to: "/vendors" },
-            { label: "Post-event reports", to: "/vendors" },
+          <FooterCol title="For vendors" items={[
+            { label: "Sell on RedeemServe", to: "/dashboard" },
+            { label: "Vendor dashboard", to: "/dashboard" },
+            { label: "Demand forecasts", to: "/dashboard" },
+            { label: "Sign in", to: "/auth" },
           ]} />
-          <FooterCol title="For Attendees" items={[
-            { label: "Find food", to: "/discover" },
-            { label: "Find transport", to: "/discover" },
-            { label: "Find medical", to: "/discover" },
-            { label: "WhatsApp directory", to: "/discover" },
+          <FooterCol title="Support" items={[
+            { label: "Help center", to: "/about" },
+            { label: "Contact", to: "/about" },
+            { label: "Vendor terms", to: "/about" },
+            { label: "Privacy", to: "/about" },
           ]} />
         </div>
 
-        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-emerald-deep/15 pt-6 text-[11px] uppercase tracking-[0.22em] text-emerald-deep/55 sm:flex-row sm:items-center">
-          <span>© {new Date().getFullYear()} RedeemServe · All rights reserved</span>
+        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-emerald-deep/10 pt-6 text-xs text-emerald-deep/55 sm:flex-row sm:items-center">
+          <span>© {new Date().getFullYear()} RedeemServe · Redemption City, Ogun State</span>
           <span>hello@redeemserve.app · WhatsApp +234 800 000 0000</span>
         </div>
       </div>
@@ -53,13 +54,12 @@ export function Footer() {
 function FooterCol({ title, items }: { title: string; items: { label: string; to: string }[] }) {
   return (
     <div className="lg:col-span-2">
-      <p className="font-display text-xs uppercase tracking-[0.28em] text-emerald-deep">
-        {title}
-      </p>
-      <div className="hairline-gold mt-2 w-8" />
-      <ul className="mt-4 space-y-2.5 text-sm text-emerald-deep/75">
+      <p className="text-xs font-semibold uppercase tracking-wider text-emerald-deep">{title}</p>
+      <ul className="mt-4 space-y-2.5 text-sm text-emerald-deep/70">
         {items.map((i) => (
-          <li key={i.label}><Link to={i.to} className="hover:text-emerald-deep hover:underline underline-offset-4 decoration-gold">{i.label}</Link></li>
+          <li key={i.label}>
+            <Link to={i.to} className="hover:text-emerald-deep">{i.label}</Link>
+          </li>
         ))}
       </ul>
     </div>
