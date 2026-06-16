@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { ArrowUpRight } from "lucide-react";
+import { BackButton } from "@/components/site/BackButton";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -67,7 +68,10 @@ function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="relative min-h-screen bg-cream">
+      <div className="absolute left-4 top-4 z-10 sm:left-6 sm:top-6">
+        <BackButton fallbackTo="/" />
+      </div>
       <div className="mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 lg:grid-cols-2">
         <aside className="hidden flex-col justify-between bg-emerald-deep p-12 text-cream lg:flex">
           <Link to="/" className="font-display text-2xl font-extrabold">
