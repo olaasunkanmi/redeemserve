@@ -111,7 +111,7 @@ function Home() {
                 <Tile big label="Vendors on the platform" value={vendors.length.toString()} sub="and growing every service" />
                 <Tile label="Avg. arrival" value="500k+" sub="per Holy Ghost Service" />
                 <Tile label="Live now" value={liveCount.toString()} sub="open on the grounds" />
-                <Tile label="Categories" value={Object.keys(counts).length || VENDOR_CATEGORIES.length + ""} sub="food · transport · goods…" />
+                <Tile label="Categories" value={String(Object.keys(counts).length || VENDOR_CATEGORIES.length)} sub="food · transport · goods…" />
               </div>
               <div className="mt-4 rounded-2xl border border-cream/15 bg-cream/5 p-5 backdrop-blur">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gold">Live now</p>
