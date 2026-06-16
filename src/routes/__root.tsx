@@ -86,6 +86,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "RedeemServe" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "RedeemServe — Connecting Vendors & Attendees at Redemption City" },
+      { name: "twitter:title", content: "RedeemServe — Connecting Vendors & Attendees at Redemption City" },
+      { name: "description", content: "Solution Compass is a multivendor marketplace platform connecting businesses and customers." },
+      { property: "og:description", content: "Solution Compass is a multivendor marketplace platform connecting businesses and customers." },
+      { name: "twitter:description", content: "Solution Compass is a multivendor marketplace platform connecting businesses and customers." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2010d753-81b2-4737-989a-af0122334a9c/id-preview-3ad05773--d8de1da5-1f0a-412a-aa09-37a3ca56ae56.lovable.app-1781642668842.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2010d753-81b2-4737-989a-af0122334a9c/id-preview-3ad05773--d8de1da5-1f0a-412a-aa09-37a3ca56ae56.lovable.app-1781642668842.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
