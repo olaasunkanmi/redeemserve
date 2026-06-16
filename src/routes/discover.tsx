@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  VENDORS,
   VENDOR_CATEGORIES,
   ZONES,
   STATUS_META,
@@ -36,9 +36,39 @@ function Discover() {
   const [zone, setZone] = useState<"All" | "A" | "B" | "C" | "D">("All");
   const [status, setStatus] = useState<"All" | "live" | "low-stock" | "sold-out">("All");
   const [selected, setSelected] = useState<Vendor | null>(null);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("vendors")
+      .select("*")
+      .order("verified", { ascending: false })
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (!data) return;
+        setVendors(
+          data.map((d: any) => ({
+            id: d.id,
+            name: d.business_name,
+            category: d.category as VendorCategory,
+            description: d.description,
+            location: d.location || `Zone ${d.zone}`,
+            zone: d.zone as Vendor["zone"],
+            x: d.pos_x,
+            y: d.pos_y,
+            status: (d.status === "closed" ? "sold-out" : d.status) as Vendor["status"],
+            rating: Number(d.rating),
+            popularItems: d.popular_items || [],
+            priceRange: d.price_range,
+            forecast: { demand: (d.demand as any) || "Medium", expectedCustomers: d.expected_customers },
+            opensAt: d.opens_at,
+          })),
+        );
+      });
+  }, []);
 
   const filtered = useMemo(() => {
-    return VENDORS.filter((v) => {
+    return vendors.filter((v) => {
       if (category !== "All" && v.category !== category) return false;
       if (zone !== "All" && v.zone !== zone) return false;
       if (status !== "All" && v.status !== status) return false;
@@ -53,7 +83,7 @@ function Discover() {
       }
       return true;
     });
-  }, [query, category, zone, status]);
+  }, [vendors, query, category, zone, status]);
 
   return (
     <SiteLayout>
