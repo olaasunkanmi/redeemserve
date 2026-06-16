@@ -1,16 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const links = [
   { to: "/", label: "Front Page" },
   { to: "/discover", label: "The Directory" },
-  { to: "/vendors", label: "Vendor Portal" },
+  { to: "/dashboard", label: "Vendor Portal" },
   { to: "/about", label: "Masthead" },
 ];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <header className="border-b border-emerald-deep/15 bg-cream">
@@ -68,6 +70,11 @@ export function Navbar() {
               {l.label}
             </Link>
           ))}
+          {user ? (
+            <Link to="/dashboard" className="border border-emerald-deep px-3 py-1.5 text-emerald-deep hover:bg-emerald-deep hover:text-cream">My Portal</Link>
+          ) : (
+            <Link to="/auth" className="border border-emerald-deep px-3 py-1.5 text-emerald-deep hover:bg-emerald-deep hover:text-cream">Sign in</Link>
+          )}
         </nav>
         <div className="hairline" />
       </div>
@@ -87,6 +94,13 @@ export function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <Link
+              to={user ? "/dashboard" : "/auth"}
+              onClick={() => setOpen(false)}
+              className="rounded border border-emerald-deep px-3 py-2.5 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-deep"
+            >
+              {user ? "My Portal" : "Sign in"}
+            </Link>
           </div>
         </div>
       )}
