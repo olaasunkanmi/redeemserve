@@ -69,57 +69,49 @@ function AuthPage() {
   return (
     <main className="min-h-screen bg-cream">
       <div className="mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 lg:grid-cols-2">
-        {/* Left masthead */}
-        <aside className="hidden flex-col justify-between border-r border-emerald-deep/15 bg-emerald-deep p-12 text-cream lg:flex">
-          <Link to="/" className="font-display text-3xl text-cream">
-            Redeem<span className="font-italic-serif text-gold">Serve</span>
+        <aside className="hidden flex-col justify-between bg-emerald-deep p-12 text-cream lg:flex">
+          <Link to="/" className="font-display text-2xl font-extrabold">
+            Redeem<span className="text-gold">Serve</span>
           </Link>
           <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-gold">A vendor account</p>
-            <h1 className="mt-4 font-display text-5xl leading-[0.95]">
-              The coordination paper{" "}
-              <span className="font-italic-serif text-gold">for every vendor</span> at Redemption City.
+            <p className="text-xs font-semibold uppercase tracking-wider text-gold">For vendors & attendees</p>
+            <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight">
+              One account. Every service. Every vendor.
             </h1>
-            <p className="mt-6 max-w-md text-sm leading-7 text-cream/80">
-              One free account. Register your stall, manage your storefront, receive AI demand
-              forecasts, and reach every attendee on the grounds — without an app.
+            <p className="mt-5 max-w-md text-sm leading-7 text-cream/80">
+              Register your stall, manage your storefront, receive AI demand
+              forecasts and reach every attendee on the grounds — without an app.
             </p>
           </div>
-          <p className="text-[10px] uppercase tracking-[0.28em] text-cream/50">
-            Vol. III · Issue 06 · For the Holy Ghost Service
-          </p>
+          <p className="text-xs text-cream/50">The marketplace for Redemption City events</p>
         </aside>
 
-        {/* Right form */}
         <section className="flex items-center justify-center p-6 sm:p-12">
           <div className="w-full max-w-md">
-            <Link to="/" className="font-display text-2xl text-emerald-deep lg:hidden">
-              Redeem<span className="font-italic-serif text-gold">Serve</span>
+            <Link to="/" className="font-display text-xl font-extrabold text-emerald-deep lg:hidden">
+              Redeem<span className="text-gold">Serve</span>
             </Link>
-            <p className="kicker mt-8 lg:mt-0">{mode === "signup" ? "Open an account" : "Welcome back"}</p>
-            <h2 className="mt-3 font-display text-4xl leading-tight text-emerald-deep">
-              {mode === "signup" ? (
-                <>Register as a <span className="font-italic-serif text-gold">vendor</span> or attendee.</>
-              ) : (
-                <>Sign in to your <span className="font-italic-serif text-gold">portal.</span></>
-              )}
+            <h2 className="mt-8 font-display text-3xl font-extrabold text-emerald-deep lg:mt-0">
+              {mode === "signup" ? "Create your account" : "Welcome back"}
             </h2>
-            <div className="hairline-gold mt-4 w-12" />
+            <p className="mt-2 text-sm text-emerald-deep/65">
+              {mode === "signup" ? "Sell or shop on RedeemServe." : "Sign in to manage your storefront."}
+            </p>
 
             <button
               onClick={google}
-              className="mt-8 flex w-full items-center justify-center gap-3 border-2 border-emerald-deep bg-cream px-4 py-3 text-sm font-medium text-emerald-deep transition-colors hover:bg-emerald-deep hover:text-cream"
+              className="mt-8 flex w-full items-center justify-center gap-3 rounded-full border border-emerald-deep/15 bg-surface px-4 py-3 text-sm font-semibold text-emerald-deep transition-colors hover:bg-emerald-soft"
             >
               <GoogleIcon /> Continue with Google
             </button>
 
-            <div className="my-6 flex items-center gap-3 text-[10px] uppercase tracking-[0.28em] text-emerald-deep/45">
-              <span className="h-px flex-1 bg-emerald-deep/15" />
+            <div className="my-6 flex items-center gap-3 text-xs text-emerald-deep/45">
+              <span className="h-px flex-1 bg-emerald-deep/10" />
               or with email
-              <span className="h-px flex-1 bg-emerald-deep/15" />
+              <span className="h-px flex-1 bg-emerald-deep/10" />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "signup" && (
                 <>
                   <Input label="Full name" value={fullName} onChange={setFullName} required placeholder="Jane Adekunle" />
@@ -129,24 +121,20 @@ function AuthPage() {
               <Input label="Email" type="email" value={email} onChange={setEmail} required placeholder="you@example.com" />
               <Input label="Password" type="password" value={password} onChange={setPassword} required placeholder="At least 8 characters" />
 
-              {err && <p className="text-xs text-rose-600">{err}</p>}
+              {err && <p className="text-sm text-rose-600">{err}</p>}
 
               <button
-                type="submit"
-                disabled={loading}
-                className="group flex w-full items-center justify-center gap-2 border-2 border-emerald-deep bg-emerald-deep px-4 py-3 text-sm font-medium text-cream transition-colors hover:bg-gold hover:border-gold hover:text-emerald-deep disabled:opacity-50"
+                type="submit" disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-deep px-4 py-3 text-sm font-semibold text-cream hover:bg-emerald disabled:opacity-50"
               >
                 {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
                 <ArrowUpRight className="h-4 w-4" />
               </button>
             </form>
 
-            <p className="mt-6 text-center text-[12px] text-emerald-deep/65">
+            <p className="mt-6 text-center text-sm text-emerald-deep/65">
               {mode === "signup" ? "Already have an account?" : "New here?"}{" "}
-              <button
-                onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
-                className="font-semibold text-emerald-deep underline-offset-4 hover:underline"
-              >
+              <button onClick={() => setMode(mode === "signup" ? "signin" : "signup")} className="font-semibold text-emerald-deep underline-offset-4 hover:underline">
                 {mode === "signup" ? "Sign in" : "Create one"}
               </button>
             </p>
@@ -165,11 +153,11 @@ function Input({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-deep">{label}</span>
+      <span className="text-xs font-semibold text-emerald-deep">{label}</span>
       <input
         type={type} value={value} required={required} placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-2 w-full border-b-2 border-emerald-deep/40 bg-transparent py-2 text-base text-emerald-deep outline-none transition-colors focus:border-gold"
+        className="mt-1.5 w-full rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2.5 text-sm text-emerald-deep outline-none transition-colors focus:border-emerald focus:ring-2 focus:ring-emerald/20"
       />
     </label>
   );
