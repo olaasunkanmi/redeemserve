@@ -3,6 +3,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { BackButton } from "./BackButton";
+import { ConciergeBubble } from "./ConciergeBubble";
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -17,6 +18,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       )}
       <main className="flex-1">{children}</main>
       <Footer />
+      <ConciergeBubble />
     </div>
   );
 }
