@@ -1,473 +1,328 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
-import { VENDORS, STATUS_META } from "@/lib/vendors";
-import { ArrowUpRight, MapPin, Quote } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { STATUS_META, VENDOR_CATEGORIES } from "@/lib/vendors";
+import {
+  Search, MapPin, Star, ArrowRight, Utensils, Bus, ShoppingBag,
+  Wrench, HeartPulse, Smartphone, Store, ShieldCheck, BarChart3,
+  MessageCircle, Clock,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "RedeemServe — The City's Coordination Paper" },
-      {
-        name: "description",
-        content:
-          "A live directory, AI demand forecasts and WhatsApp access — built for Redemption City's Holy Ghost Service and the RCCG Convention.",
-      },
-      { property: "og:title", content: "RedeemServe — Vendors & attendees, connected" },
-      {
-        property: "og:description",
-        content: "The coordination paper for the world's largest monthly gathering.",
-      },
+      { title: "RedeemServe — Multivendor marketplace for Redemption City" },
+      { name: "description", content: "Browse food, transport, goods, services and medical vendors at Redemption City. Live availability, ratings and WhatsApp ordering for the Holy Ghost Service." },
+      { property: "og:title", content: "RedeemServe — Find any vendor at Redemption City" },
+      { property: "og:description", content: "The official multivendor marketplace for the Holy Ghost Service and RCCG Convention." },
     ],
   }),
   component: Home,
 });
 
+const CATEGORY_ICONS: Record<string, any> = {
+  "Food & Drinks": Utensils,
+  Transport: Bus,
+  Goods: ShoppingBag,
+  Services: Wrench,
+  Medical: HeartPulse,
+  "Tech & Phones": Smartphone,
+};
+
+type V = {
+  id: string; business_name: string; category: string; zone: string; description: string;
+  price_range: string; rating: number; status: string; popular_items: string[]; opens_at: string;
+};
+
 function Home() {
+  const [vendors, setVendors] = useState<V[]>([]);
+  const [q, setQ] = useState("");
+
+  useEffect(() => {
+    supabase.from("vendors").select("*").order("verified", { ascending: false })
+      .order("rating", { ascending: false }).limit(60)
+      .then(({ data }) => setVendors((data as any) ?? []));
+  }, []);
+
+  const counts: Record<string, number> = {};
+  vendors.forEach((v) => { counts[v.category] = (counts[v.category] ?? 0) + 1; });
+  const featured = vendors.slice(0, 6);
+  const liveCount = vendors.filter((v) => v.status === "live").length;
+
   return (
     <SiteLayout>
-      <Ticker />
-      <FrontPage />
-      <Directory />
-      <CapabilitiesSpread />
-      <DispatchPullquote />
-      <NumbersStrip />
-      <ClosingPlate />
+      {/* HERO */}
+      <section className="hero-gradient text-cream">
+        <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8 sm:py-24">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-cream/20 bg-cream/10 px-3 py-1 text-xs font-medium text-cream backdrop-blur">
+                <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-gold" />
+                {liveCount > 0 ? `${liveCount} vendors live on the grounds` : "Live vendor marketplace"}
+              </span>
+              <h1 className="mt-5 font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-balance sm:text-6xl">
+                Find any vendor at Redemption City — in seconds.
+              </h1>
+              <p className="mt-5 max-w-xl text-base leading-7 text-cream/80">
+                RedeemServe is the multivendor marketplace for the Holy Ghost
+                Service and RCCG Convention. Search verified food sellers, transport
+                operators, traders and services with live availability and WhatsApp
+                ordering.
+              </p>
+
+              <form
+                action="/discover"
+                className="mt-8 flex items-center gap-2 rounded-2xl bg-surface p-2 shadow-card"
+              >
+                <div className="flex flex-1 items-center gap-3 pl-3">
+                  <Search className="h-5 w-5 text-emerald-deep/50" />
+                  <input
+                    name="q"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Try ‘jollof’, ‘sachet water’, ‘keke to Mowe’…"
+                    className="w-full bg-transparent py-2.5 text-sm text-ink outline-none placeholder:text-emerald-deep/40"
+                  />
+                </div>
+                <Link
+                  to="/discover"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-deep px-5 text-sm font-semibold text-cream hover:bg-emerald"
+                >
+                  Search <ArrowRight className="h-4 w-4" />
+                </Link>
+              </form>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {VENDOR_CATEGORIES.slice(0, 4).map((c) => (
+                  <Link
+                    key={c}
+                    to="/discover"
+                    className="rounded-full border border-cream/20 bg-cream/5 px-3 py-1.5 text-xs font-medium text-cream/85 hover:border-gold hover:text-gold"
+                  >
+                    {c}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="grid grid-cols-2 gap-4">
+                <Tile big label="Vendors on the platform" value={vendors.length.toString()} sub="and growing every service" />
+                <Tile label="Avg. arrival" value="500k+" sub="per Holy Ghost Service" />
+                <Tile label="Live now" value={liveCount.toString()} sub="open on the grounds" />
+                <Tile label="Categories" value={String(Object.keys(counts).length || VENDOR_CATEGORIES.length)} sub="food · transport · goods…" />
+              </div>
+              <div className="mt-4 rounded-2xl border border-cream/15 bg-cream/5 p-5 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gold">Live now</p>
+                <ul className="mt-3 space-y-2.5">
+                  {(vendors.filter((v) => v.status === "live").slice(0, 3).length
+                    ? vendors.filter((v) => v.status === "live").slice(0, 3)
+                    : featured.slice(0, 3)
+                  ).map((v) => (
+                    <li key={v.id} className="flex items-center justify-between gap-3 text-sm">
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-emerald-400" />
+                        <span className="truncate font-medium text-cream">{v.business_name}</span>
+                      </div>
+                      <span className="shrink-0 text-xs text-cream/60">Zone {v.zone}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CATEGORIES */}
+      <section className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8">
+        <div className="flex items-end justify-between">
+          <div>
+            <h2 className="font-display text-3xl font-extrabold text-emerald-deep">Shop by category</h2>
+            <p className="mt-2 text-sm text-emerald-deep/65">Six categories cover every need on the grounds.</p>
+          </div>
+          <Link to="/discover" className="hidden text-sm font-semibold text-emerald-deep hover:text-gold sm:inline-flex">
+            View all →
+          </Link>
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {VENDOR_CATEGORIES.map((c) => {
+            const Icon = CATEGORY_ICONS[c] ?? Store;
+            return (
+              <Link
+                key={c}
+                to="/discover"
+                className="group rounded-2xl border border-emerald-deep/10 bg-surface p-5 shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5"
+              >
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-soft text-emerald-deep transition-colors group-hover:bg-emerald-deep group-hover:text-cream">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <p className="mt-4 text-sm font-semibold text-emerald-deep">{c}</p>
+                <p className="mt-1 text-xs text-emerald-deep/55">
+                  {counts[c] ?? 0} {(counts[c] ?? 0) === 1 ? "vendor" : "vendors"}
+                </p>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* FEATURED VENDORS */}
+      <section className="bg-emerald-soft/50">
+        <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8">
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="font-display text-3xl font-extrabold text-emerald-deep">Featured vendors</h2>
+              <p className="mt-2 text-sm text-emerald-deep/65">Verified, top-rated and ready for the next service.</p>
+            </div>
+            <Link to="/discover" className="text-sm font-semibold text-emerald-deep hover:text-gold">View directory →</Link>
+          </div>
+
+          {featured.length === 0 ? (
+            <div className="mt-8 rounded-2xl border-2 border-dashed border-emerald-deep/15 bg-surface p-10 text-center">
+              <p className="text-sm text-emerald-deep/65">No vendors yet. Be the first to list your business.</p>
+              <Link to="/dashboard" className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-deep px-4 py-2 text-sm font-semibold text-cream hover:bg-emerald">
+                Become a vendor <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((v) => <VendorCard key={v.id} v={v} />)}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="mx-auto max-w-[1400px] px-4 py-20 sm:px-8">
+        <div className="grid gap-10 lg:grid-cols-2">
+          <Panel
+            title="For attendees"
+            color="emerald"
+            cta={{ label: "Browse vendors", to: "/discover" }}
+            steps={[
+              { icon: Search, t: "Search what you need", b: "Food, water, transport, charging, medical — all in one directory." },
+              { icon: MapPin, t: "See live availability", b: "Open, low stock or sold out — updated in real time across the grounds." },
+              { icon: MessageCircle, t: "Order on WhatsApp", b: "Call or message the vendor directly. No accounts required to buy." },
+            ]}
+          />
+          <Panel
+            title="For vendors"
+            color="gold"
+            cta={{ label: "Start selling", to: "/dashboard" }}
+            steps={[
+              { icon: Store, t: "Create your storefront", b: "List your business, items and price range in under three minutes." },
+              { icon: BarChart3, t: "Get demand forecasts", b: "AI-projected customer counts and peak hours, trained on RCCG patterns." },
+              { icon: ShieldCheck, t: "Earn a verified badge", b: "Build trust and unlock priority placement in the directory." },
+            ]}
+          />
+        </div>
+      </section>
+
+      {/* CTA STRIP */}
+      <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-8">
+        <div className="overflow-hidden rounded-3xl bg-emerald-deep p-10 text-cream sm:p-14">
+          <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+            <div>
+              <h2 className="font-display text-3xl font-extrabold sm:text-4xl">
+                A city of 2 million worshippers.<br />One marketplace to serve them.
+              </h2>
+              <p className="mt-3 max-w-xl text-cream/75">
+                Whether you sell jollof, run a shuttle, or fix phones — list once,
+                reach every attendee at the next Holy Ghost Service.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-emerald-deep hover:opacity-90">
+                Open vendor portal <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link to="/discover" className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-6 py-3 text-sm font-semibold text-cream hover:bg-cream/10">
+                Browse vendors
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </SiteLayout>
   );
 }
 
-/* ──────────────────────────────────────────────────────────── */
-/*  Ticker — live vendor status, marquee-style                  */
-/* ──────────────────────────────────────────────────────────── */
-
-function Ticker() {
-  const items = VENDORS.slice(0, 8);
-  const row = (
-    <div className="flex shrink-0 items-center gap-10 px-6">
-      {items.map((v) => {
-        const meta = STATUS_META[v.status];
-        return (
-          <span key={v.id} className="flex items-center gap-2 text-[12px] uppercase tracking-[0.18em] text-cream/85">
-            <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-            <span className="font-semibold text-cream">{v.name}</span>
-            <span className="text-cream/55">— {meta.label} · Zone {v.zone}</span>
-          </span>
-        );
-      })}
-    </div>
-  );
+function Tile({ label, value, sub, big }: { label: string; value: string; sub?: string; big?: boolean }) {
   return (
-    <div className="overflow-hidden border-b border-emerald-deep/30 bg-emerald-deep py-2.5">
-      <div className="marquee-track flex w-max">
-        {row}
-        {row}
-      </div>
+    <div className={`rounded-2xl border border-cream/15 bg-cream/5 p-5 backdrop-blur ${big ? "row-span-1" : ""}`}>
+      <p className="text-xs font-semibold uppercase tracking-wider text-gold">{label}</p>
+      <p className="mt-2 font-display text-3xl font-extrabold text-cream tabular">{value}</p>
+      {sub && <p className="mt-1 text-xs text-cream/60">{sub}</p>}
     </div>
   );
 }
 
-/* ──────────────────────────────────────────────────────────── */
-/*  Front page — editorial split                                */
-/* ──────────────────────────────────────────────────────────── */
-
-function FrontPage() {
-  return (
-    <section className="paper border-b border-emerald-deep/15">
-      <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-8 sm:py-16">
-        <div className="grid gap-10 lg:grid-cols-12">
-          {/* Left rail — issue metadata */}
-          <aside className="lg:col-span-2">
-            <p className="font-display text-7xl leading-none text-emerald-deep">No. 06</p>
-            <div className="hairline-gold mt-3 w-12" />
-            <dl className="mt-6 space-y-4 text-[11px] uppercase tracking-[0.22em] text-emerald-deep/65">
-              <div>
-                <dt className="text-emerald-deep/40">Filed</dt>
-                <dd className="mt-1">May 2026</dd>
-              </div>
-              <div>
-                <dt className="text-emerald-deep/40">Dateline</dt>
-                <dd className="mt-1">Redemption City, Ogun</dd>
-              </div>
-              <div>
-                <dt className="text-emerald-deep/40">Service</dt>
-                <dd className="mt-1">Holy Ghost · Friday</dd>
-              </div>
-              <div>
-                <dt className="text-emerald-deep/40">Forecast</dt>
-                <dd className="mt-1 font-display text-2xl normal-case tracking-normal text-emerald-deep">
-                  ~1.4M
-                </dd>
-              </div>
-            </dl>
-          </aside>
-
-          {/* Lede — main story */}
-          <div className="lg:col-span-7">
-            <p className="kicker">Cover Story · The Solution</p>
-            <h1 className="mt-4 font-display text-[56px] leading-[0.95] tracking-tight text-emerald-deep text-balance sm:text-[88px]">
-              The directory the city
-              <br />
-              has been{" "}
-              <span className="font-italic-serif text-gold">waiting for.</span>
-            </h1>
-
-            <div className="mt-8 grid gap-6 sm:grid-cols-2">
-              <p className="drop-cap text-[15px] leading-7 text-emerald-deep/85">
-                RedeemServe is a live coordination layer for Redemption City — a single,
-                trusted record of who is open, where they are, and what they have left.
-                Vendors arrive prepared. Attendees arrive informed. The world's largest
-                monthly gathering finally has the discovery tools a city of its size
-                deserves.
-              </p>
-              <p className="text-[15px] leading-7 text-emerald-deep/75">
-                Built around the rhythms of the Holy Ghost Service and the annual RCCG
-                Convention, the platform combines a real-time vendor map, AI demand
-                forecasting, automated onboarding, and a WhatsApp interface for those
-                without data. No app to download. No friction. Just clarity for both
-                sides of the meeting point.
-              </p>
-            </div>
-
-            <div className="mt-10 flex flex-wrap items-center gap-3">
-              <Link
-                to="/discover"
-                className="group inline-flex items-center gap-2 border-b-2 border-emerald-deep px-1 pb-1 font-display text-xl text-emerald-deep transition-all hover:border-gold hover:text-gold"
-              >
-                Open the directory
-                <ArrowUpRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-              <Link
-                to="/vendors"
-                className="group inline-flex items-center gap-2 border-b-2 border-transparent px-1 pb-1 font-display text-xl text-emerald-deep/70 transition-all hover:border-gold hover:text-emerald-deep"
-              >
-                Register as a vendor
-                <ArrowUpRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Right column — featured plate */}
-          <div className="lg:col-span-3">
-            <FeaturedPlate />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeaturedPlate() {
-  return (
-    <div className="border border-emerald-deep/20 bg-cream/60 p-5">
-      <p className="kicker">Now live · Zone A</p>
-      <div className="hairline-gold mt-2 w-10" />
-      <p className="mt-4 font-display text-2xl leading-tight text-emerald-deep">
-        42 vendors trading at the Main Auditorium right now.
-      </p>
-
-      <ul className="mt-5 space-y-3">
-        {VENDORS.slice(0, 4).map((v, i) => {
-          const meta = STATUS_META[v.status];
-          return (
-            <li key={v.id} className="flex items-start gap-3 border-t border-emerald-deep/10 pt-3 first:border-t-0 first:pt-0">
-              <span className="font-display text-sm tabular text-emerald-deep/50">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-emerald-deep">{v.name}</p>
-                <p className="mt-0.5 text-[12px] text-emerald-deep/60">{v.popularItems[0]} · ★ {v.rating}</p>
-              </div>
-              <span className={`h-1.5 w-1.5 translate-y-1.5 rounded-full ${meta.dot}`} />
-            </li>
-          );
-        })}
-      </ul>
-
-      <Link
-        to="/discover"
-        className="mt-5 block border-t-2 border-emerald-deep pt-3 text-center font-display text-sm uppercase tracking-[0.2em] text-emerald-deep hover:text-gold"
-      >
-        See all 42 →
-      </Link>
-    </div>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────── */
-/*  The Directory — featured plate grid                         */
-/* ──────────────────────────────────────────────────────────── */
-
-function Directory() {
-  const featured = VENDORS.slice(0, 6);
-  return (
-    <section className="border-b border-emerald-deep/15">
-      <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8 sm:py-20">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="kicker">Section II · The Directory</p>
-            <h2 className="mt-3 font-display text-5xl leading-[0.95] tracking-tight text-emerald-deep sm:text-6xl">
-              Who is open, <span className="font-italic-serif text-gold">right now.</span>
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-emerald-deep/70">
-              A living index of every verified vendor on the grounds. Filter by zone, by
-              category, by what's actually in stock at this minute.
-            </p>
-          </div>
-          <Link
-            to="/discover"
-            className="group inline-flex items-center gap-2 border-b border-emerald-deep pb-1 font-display text-lg text-emerald-deep hover:border-gold hover:text-gold"
-          >
-            Browse all vendors <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
-        </div>
-
-        <div className="rule-thick mt-8" />
-
-        {/* Editorial grid: 1 large + 5 smaller */}
-        <div className="mt-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-          <DirectoryEntry vendor={featured[0]} large index={1} />
-          {featured.slice(1).map((v, i) => (
-            <DirectoryEntry key={v.id} vendor={v} index={i + 2} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function DirectoryEntry({
-  vendor,
-  large = false,
-  index,
-}: {
-  vendor: (typeof VENDORS)[number];
-  large?: boolean;
-  index: number;
-}) {
-  const meta = STATUS_META[vendor.status];
+function VendorCard({ v }: { v: V }) {
+  const status = STATUS_META[(v.status === "closed" ? "sold-out" : v.status) as keyof typeof STATUS_META];
+  const Icon = CATEGORY_ICONS[v.category] ?? Store;
   return (
     <Link
       to="/discover"
-      className={`group block ${large ? "md:col-span-2 lg:row-span-2" : ""}`}
+      className="group rounded-2xl border border-emerald-deep/10 bg-surface p-5 shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5"
     >
-      <div className="flex items-baseline justify-between">
-        <span className="font-display text-sm tabular text-emerald-deep/40">
-          {String(index).padStart(2, "0")} / {String(VENDORS.length).padStart(2, "0")}
+      <div className="flex items-start justify-between gap-3">
+        <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-soft text-emerald-deep">
+          <Icon className="h-5 w-5" />
         </span>
-        <span className="text-[10px] uppercase tracking-[0.22em] text-emerald-deep/55">
-          Zone {vendor.zone}
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${status?.bg ?? "bg-emerald-50"} ${status?.text ?? "text-emerald-700"}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${status?.dot ?? "bg-emerald-500"}`} />
+          {status?.label ?? v.status}
         </span>
       </div>
-      <div className="hairline mt-2" />
-      <p className="kicker mt-4">{vendor.category}</p>
-      <h3
-        className={`mt-2 font-display tracking-tight text-emerald-deep transition-colors group-hover:text-gold ${
-          large ? "text-5xl leading-[0.95] sm:text-6xl" : "text-2xl leading-tight"
-        }`}
-      >
-        {vendor.name}
-      </h3>
-      <p className={`mt-3 leading-relaxed text-emerald-deep/75 ${large ? "text-base max-w-md" : "text-sm"}`}>
-        {vendor.description}
-      </p>
-
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] uppercase tracking-[0.18em] text-emerald-deep/60">
-        <span className="flex items-center gap-1.5">
-          <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-          {meta.label}
-        </span>
-        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {vendor.location}</span>
-        <span className="tabular">★ {vendor.rating}</span>
+      <h3 className="mt-4 font-display text-lg font-bold text-emerald-deep group-hover:text-emerald">{v.business_name}</h3>
+      <p className="mt-1 line-clamp-2 text-sm text-emerald-deep/65">{v.description}</p>
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-emerald-deep/65">
+        <span className="inline-flex items-center gap-1 font-semibold text-emerald-deep"><Star className="h-3.5 w-3.5 fill-gold text-gold" /> {Number(v.rating).toFixed(1)}</span>
+        <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> Zone {v.zone}</span>
+        <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {v.opens_at}</span>
+      </div>
+      <div className="mt-4 flex items-center justify-between border-t border-emerald-deep/10 pt-3 text-sm">
+        <span className="font-semibold text-emerald-deep">{v.price_range || "—"}</span>
+        <span className="text-xs font-semibold text-emerald group-hover:text-gold">View →</span>
       </div>
     </Link>
   );
 }
 
-/* ──────────────────────────────────────────────────────────── */
-/*  Capabilities spread — two-page editorial                    */
-/* ──────────────────────────────────────────────────────────── */
-
-const VENDOR_CAPS = [
-  { num: "01", title: "Pre-event registration", body: "Claim your zone, category and capacity ahead of every service. Be listed before the gates even open." },
-  { num: "02", title: "AI demand forecasting", body: "Trained on RCCG event patterns. Know — by hour, by category — what to prepare." },
-  { num: "03", title: "Live storefront", body: "A profile attendees can find, with live stock and a direct WhatsApp line." },
-  { num: "04", title: "AI onboarding briefing", body: "A personalised video the day you register. No more arriving blind." },
-  { num: "05", title: "Post-event report", body: "What sold, what didn't, what to bring next month. Plain numbers, no fluff." },
-];
-
-const ATTENDEE_CAPS = [
-  { num: "01", title: "Live grounds map", body: "Every active vendor, every zone — visible before you take a step." },
-  { num: "02", title: "Real-time stock", body: "Sold out at one stall? The next one over surfaces automatically." },
-  { num: "03", title: "Pre-arrival planning", body: "Browse vendors from home. Arrive informed, not improvising." },
-  { num: "04", title: "WhatsApp access", body: "No data? Text RedeemServe and get the directory by message." },
-  { num: "05", title: "Saved itineraries", body: "Bookmark vendors for your family, your team, your travel group." },
-];
-
-function CapabilitiesSpread() {
-  return (
-    <section className="paper border-b border-emerald-deep/15">
-      <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8 sm:py-20">
-        <div className="text-center">
-          <p className="kicker">Section III · The Apparatus</p>
-          <h2 className="mt-3 font-display text-5xl leading-[0.95] tracking-tight text-emerald-deep sm:text-6xl">
-            One paper. <span className="font-italic-serif text-gold">Two readerships.</span>
-          </h2>
-        </div>
-
-        <div className="rule-thick mx-auto mt-8 max-w-xs" />
-
-        <div className="mt-14 grid gap-14 lg:grid-cols-2 lg:gap-20">
-          <CapColumn label="For the Vendor" items={VENDOR_CAPS} cta={{ label: "Open the vendor portal", to: "/vendors" }} />
-          <div className="hidden border-l border-emerald-deep/15 lg:block" style={{ marginLeft: "-2.5rem" }} />
-          <div className="lg:-ml-10">
-            <CapColumn label="For the Attendee" items={ATTENDEE_CAPS} cta={{ label: "Open the directory", to: "/discover" }} />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CapColumn({
-  label,
-  items,
-  cta,
-}: {
-  label: string;
-  items: { num: string; title: string; body: string }[];
+function Panel({ title, color, steps, cta }: {
+  title: string; color: "emerald" | "gold";
+  steps: { icon: any; t: string; b: string }[];
   cta: { label: string; to: string };
 }) {
   return (
-    <div>
-      <p className="font-italic-serif text-2xl text-emerald-deep">{label}</p>
-      <div className="hairline-gold mt-3 w-12" />
-
-      <ol className="mt-8 space-y-7">
-        {items.map((i) => (
-          <li key={i.num} className="grid grid-cols-[auto_1fr] gap-x-6 border-t border-emerald-deep/10 pt-5 first:border-t-0 first:pt-0">
-            <span className="font-display text-3xl tabular text-gold leading-none">{i.num}</span>
+    <div className="rounded-3xl border border-emerald-deep/10 bg-surface p-8 shadow-card">
+      <div className="flex items-center gap-3">
+        <span className={`inline-block h-2 w-2 rounded-full ${color === "gold" ? "bg-gold" : "bg-emerald"}`} />
+        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-deep/70">{title}</p>
+      </div>
+      <h3 className="mt-3 font-display text-3xl font-extrabold text-emerald-deep">
+        {title === "For vendors" ? "Run your stall like a real business." : "Stop wandering. Start finding."}
+      </h3>
+      <ul className="mt-8 space-y-5">
+        {steps.map(({ icon: Icon, t, b }, i) => (
+          <li key={i} className="flex gap-4">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-soft text-emerald-deep">
+              <Icon className="h-5 w-5" />
+            </span>
             <div>
-              <h3 className="font-display text-2xl leading-tight text-emerald-deep">{i.title}</h3>
-              <p className="mt-2 text-[15px] leading-7 text-emerald-deep/75">{i.body}</p>
+              <p className="font-semibold text-emerald-deep">{t}</p>
+              <p className="mt-1 text-sm text-emerald-deep/65">{b}</p>
             </div>
           </li>
         ))}
-      </ol>
-
+      </ul>
       <Link
         to={cta.to}
-        className="mt-10 inline-flex items-center gap-2 border-b border-emerald-deep pb-1 font-display text-lg text-emerald-deep hover:border-gold hover:text-gold"
+        className="mt-8 inline-flex items-center gap-2 rounded-full bg-emerald-deep px-5 py-2.5 text-sm font-semibold text-cream hover:bg-emerald"
       >
-        {cta.label} <ArrowUpRight className="h-4 w-4" />
+        {cta.label} <ArrowRight className="h-4 w-4" />
       </Link>
     </div>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────── */
-/*  Dispatch pull quote                                          */
-/* ──────────────────────────────────────────────────────────── */
-
-function DispatchPullquote() {
-  return (
-    <section className="ink-grad text-cream">
-      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-8 sm:py-28">
-        <div className="grid gap-10 lg:grid-cols-12 lg:items-start">
-          <div className="lg:col-span-3">
-            <Quote className="h-12 w-12 text-gold" strokeWidth={1} />
-            <p className="mt-6 text-[11px] uppercase tracking-[0.28em] text-cream/55">
-              Field Dispatch
-              <br />
-              Holy Ghost Service · Mar 2026
-            </p>
-          </div>
-          <blockquote className="lg:col-span-9">
-            <p className="font-display text-3xl leading-[1.15] text-balance text-cream sm:text-5xl">
-              "A vendor two hundred metres away is{" "}
-              <span className="text-gold font-italic-serif">invisible</span> to an
-              attendee who needs them. Supply and demand exist in the same place —
-              they simply never meet. That is the gap RedeemServe closes."
-            </p>
-            <footer className="mt-8 flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-cream/60">
-              <span className="h-px w-12 bg-gold" />
-              From the founding brief
-            </footer>
-          </blockquote>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────── */
-/*  Numbers strip — typographic, not "stat cards"                */
-/* ──────────────────────────────────────────────────────────── */
-
-function NumbersStrip() {
-  const numbers = [
-    { value: "1.4M", label: "expected attendees · next service" },
-    { value: "12", label: "monthly events · per calendar year" },
-    { value: "42", label: "verified vendors · Zone A right now" },
-    { value: "5", label: "languages supported · over WhatsApp" },
-  ];
-  return (
-    <section className="border-b border-emerald-deep/15 bg-cream">
-      <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-8">
-        <div className="grid gap-y-10 sm:grid-cols-2 sm:divide-x sm:divide-emerald-deep/15 lg:grid-cols-4">
-          {numbers.map((n) => (
-            <div key={n.label} className="px-2 text-center sm:px-6">
-              <p className="font-display text-6xl tabular text-emerald-deep sm:text-7xl">
-                {n.value}
-              </p>
-              <p className="mt-2 text-[11px] uppercase tracking-[0.22em] text-emerald-deep/55">
-                {n.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────── */
-/*  Closing plate                                                */
-/* ──────────────────────────────────────────────────────────── */
-
-function ClosingPlate() {
-  return (
-    <section className="mx-auto max-w-[1400px] px-4 py-20 sm:px-8 sm:py-24">
-      <div className="grid gap-10 border-y-2 border-emerald-deep py-14 lg:grid-cols-12">
-        <div className="lg:col-span-7">
-          <p className="kicker">The Subscription · Free Forever</p>
-          <h2 className="mt-3 font-display text-5xl leading-[0.95] tracking-tight text-emerald-deep text-balance sm:text-7xl">
-            Be ready for the
-            <br />
-            next <span className="font-italic-serif text-gold">Holy Ghost</span> Service.
-          </h2>
-          <p className="mt-6 max-w-xl text-base leading-7 text-emerald-deep/75">
-            Whether you're serving thousands of plates or simply looking for one — pick
-            your side and join. No accounts to verify endlessly. No noise. Just the
-            directory you needed last month.
-          </p>
-        </div>
-        <div className="flex flex-col justify-end gap-3 lg:col-span-5 lg:items-end">
-          <Link
-            to="/vendors"
-            className="group inline-flex items-center justify-between gap-6 border-2 border-emerald-deep bg-emerald-deep px-7 py-4 text-cream transition-colors hover:bg-gold hover:border-gold hover:text-emerald-deep lg:min-w-[340px]"
-          >
-            <span className="font-display text-xl">I am a vendor</span>
-            <ArrowUpRight className="h-5 w-5" />
-          </Link>
-          <Link
-            to="/discover"
-            className="group inline-flex items-center justify-between gap-6 border-2 border-emerald-deep px-7 py-4 text-emerald-deep transition-colors hover:bg-emerald-deep hover:text-cream lg:min-w-[340px]"
-          >
-            <span className="font-display text-xl">I am an attendee</span>
-            <ArrowUpRight className="h-5 w-5" />
-          </Link>
-        </div>
-      </div>
-    </section>
   );
 }
