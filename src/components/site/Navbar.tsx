@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, Store, Search, User, ShoppingBag } from "lucide-react";
+import { Menu, X, Store, Search, User, ShoppingBag, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/lib/cart";
+import { DarkModeToggle } from "./DarkModeToggle";
 
 const links = [
   { to: "/", label: "Home" },
   { to: "/discover", label: "Browse vendors" },
+  { to: "/favorites", label: "Saved" },
   { to: "/orders", label: "My orders" },
   { to: "/dashboard", label: "Sell" },
   { to: "/about", label: "About" },
@@ -51,6 +53,12 @@ export function Navbar() {
             <Search className="h-4 w-4" />
             <span>Search vendors…</span>
           </Link>
+          <DarkModeToggle />
+          {user && (
+            <Link to="/favorites" className="hidden h-9 w-9 place-items-center rounded-full border border-emerald-deep/15 text-emerald-deep hover:bg-emerald-soft sm:grid" aria-label="Saved vendors">
+              <Heart className="h-4 w-4" />
+            </Link>
+          )}
           <Link to="/checkout" className="relative grid h-9 w-9 place-items-center rounded-full border border-emerald-deep/15 text-emerald-deep hover:bg-emerald-soft" aria-label="Cart">
             <ShoppingBag className="h-4 w-4" />
             {count > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-emerald-deep">{count}</span>}

@@ -8,9 +8,10 @@ import {
   type Vendor, type VendorCategory,
 } from "@/lib/vendors";
 import {
-  Search, X, MapPin, Clock, Phone, MessageCircle, Star, Plus, ArrowRight,
+  Search, X, MapPin, Clock, Phone, MessageCircle, Star, Plus, ArrowRight, Heart,
   Utensils, Bus, ShoppingBag, Wrench, HeartPulse, Smartphone, Store, SlidersHorizontal,
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 function itemPrice(priceRange: string, idx: number) {
   const m = (priceRange || "").match(/(\d[\d,]*)/g);
@@ -172,9 +173,36 @@ function StatusPill({ status }: { status: Vendor["status"] }) {
 
 function VendorCard({ v, onOpen }: { v: Vendor & { featured?: boolean }; onOpen: () => void }) {
   const Icon = CATEGORY_ICONS[v.category] ?? Store;
+  const { user } = useAuth();
+  const [fav, setFav] = useState(false);
+  useEffect(() => {
+    if (!user) { setFav(false); return; }
+    supabase.from("favorites" as any).select("vendor_id").eq("user_id", user.id).eq("vendor_id", v.id).maybeSingle()
+      .then(({ data }) => setFav(!!data));
+  }, [user?.id, v.id]);
+  async function toggleFav(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!user) { window.location.href = "/auth"; return; }
+    if (fav) {
+      await supabase.from("favorites" as any).delete().eq("user_id", user.id).eq("vendor_id", v.id);
+    } else {
+      await supabase.from("favorites" as any).insert({ user_id: user.id, vendor_id: v.id });
+    }
+    setFav(!fav);
+  }
   return (
-    <button onClick={onOpen} className={`group rounded-2xl border bg-surface p-5 text-left shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover ${v.featured ? "border-gold ring-2 ring-gold/30" : "border-emerald-deep/10"}`}>
-      <div className="flex items-start justify-between gap-3">
+    <button onClick={onOpen} className={`group relative rounded-2xl border bg-surface p-5 text-left shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover ${v.featured ? "border-gold ring-2 ring-gold/30" : "border-emerald-deep/10"}`}>
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={toggleFav}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFav(e as any); } }}
+        className={`absolute right-3 top-3 grid h-8 w-8 cursor-pointer place-items-center rounded-full border ${fav ? "border-rose-300 bg-rose-50 text-rose-500" : "border-emerald-deep/15 bg-surface text-emerald-deep/60 hover:text-rose-500"}`}
+        aria-label={fav ? "Remove from saved" : "Save vendor"}
+      >
+        <Heart className={`h-4 w-4 ${fav ? "fill-current" : ""}`} />
+      </span>
+      <div className="flex items-start justify-between gap-3 pr-10">
         <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-soft text-emerald-deep">
           <Icon className="h-5 w-5" />
         </span>

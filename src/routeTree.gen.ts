@@ -19,6 +19,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorIdRouteImport } from './routes/vendor.$id'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authenticated/favorites'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicConciergeRouteImport } from './routes/api/public/concierge'
@@ -72,6 +73,11 @@ const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFavoritesRoute = AuthenticatedFavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/vendors': typeof VendorsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/favorites': typeof AuthenticatedFavoritesRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/vendors': typeof VendorsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/favorites': typeof AuthenticatedFavoritesRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/vendors': typeof VendorsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/favorites': typeof AuthenticatedFavoritesRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/admin'
     | '/dashboard'
+    | '/favorites'
     | '/orders'
     | '/vendor/$id'
     | '/api/public/concierge'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/admin'
     | '/dashboard'
+    | '/favorites'
     | '/orders'
     | '/vendor/$id'
     | '/api/public/concierge'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/favorites'
     | '/_authenticated/orders'
     | '/vendor/$id'
     | '/api/public/concierge'
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/favorites': {
+      id: '/_authenticated/favorites'
+      path: '/favorites'
+      fullPath: '/favorites'
+      preLoaderRoute: typeof AuthenticatedFavoritesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -290,12 +309,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFavoritesRoute: typeof AuthenticatedFavoritesRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFavoritesRoute: AuthenticatedFavoritesRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
 }
 

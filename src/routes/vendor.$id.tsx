@@ -76,13 +76,27 @@ function VendorPage() {
 
   const status = STATUS_META[(v.status === "closed" ? "sold-out" : v.status) as keyof typeof STATUS_META];
   const items: string[] = v.popular_items || [];
-  // Derive item prices roughly from price_range
   const priceMatch = (v.price_range || "").match(/(\d[\d,]*)/g);
   const basePrice = priceMatch ? parseInt(priceMatch[0].replace(/,/g, ""), 10) : 1000;
   const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : Number(v.rating).toFixed(1);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: v.business_name,
+    description: v.description,
+    image: v.image_url || undefined,
+    telephone: v.phone || undefined,
+    address: { "@type": "PostalAddress", addressLocality: `Zone ${v.zone}`, addressRegion: "Ogun", addressCountry: "NG" },
+    priceRange: v.price_range || "₦₦",
+    aggregateRating: reviews.length ? { "@type": "AggregateRating", ratingValue: Number(avgRating), reviewCount: reviews.length } : undefined,
+  };
+
+
+
   return (
     <SiteLayout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="border-b border-emerald-deep/10 bg-gradient-to-br from-emerald-deep to-emerald text-cream">
         <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-8 sm:py-14">
           <div className="flex flex-wrap items-start justify-between gap-6">
