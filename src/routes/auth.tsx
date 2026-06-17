@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { isValidNigerianPhone, toE164Nigerian, NG_PHONE_HINT } from "@/lib/phone";
 import { ArrowUpRight } from "lucide-react";
 import { BackButton } from "@/components/site/BackButton";
 
@@ -59,12 +60,16 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
+        if (phone && !isValidNigerianPhone(phone)) {
+          throw new Error(NG_PHONE_HINT);
+        }
+        const normalizedPhone = phone ? toE164Nigerian(phone) : "";
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: window.location.origin + "/dashboard",
-            data: { full_name: fullName, phone },
+            data: { full_name: fullName, phone: normalizedPhone },
           },
         });
         if (error) throw error;
@@ -144,7 +149,7 @@ function AuthPage() {
               {mode === "signup" && (
                 <>
                   <Input label="Full name" value={fullName} onChange={setFullName} required placeholder="Jane Adekunle" />
-                  <Input label="WhatsApp / Phone" value={phone} onChange={setPhone} placeholder="+234 …" />
+                  <Input label="WhatsApp / Phone" value={phone} onChange={setPhone} placeholder="08031234567 or +2348031234567" hint={NG_PHONE_HINT} invalid={!!phone && !isValidNigerianPhone(phone)} type="tel" />
                 </>
               )}
               <Input label="Email" type="email" value={email} onChange={setEmail} required placeholder="you@example.com" />
