@@ -233,7 +233,7 @@ function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-emerald-deep hover:opacity-90">
+              <Link to="/auth" search={{ intent: "vendor" } as any} className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-emerald-deep hover:opacity-90">
                 Open vendor portal <ArrowRight className="h-4 w-4" />
               </Link>
               <Link to="/discover" className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-6 py-3 text-sm font-semibold text-cream hover:bg-cream/10">
