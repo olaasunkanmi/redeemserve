@@ -4,21 +4,26 @@ import { Menu, X, Store, Search, User, ShoppingBag, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/lib/cart";
 import { DarkModeToggle } from "./DarkModeToggle";
+import { LanguageToggle } from "./LanguageToggle";
+import { useI18n } from "@/lib/i18n";
 
-const links = [
-  { to: "/", label: "Home" },
-  { to: "/discover", label: "Browse vendors" },
-  { to: "/favorites", label: "Saved" },
-  { to: "/orders", label: "My orders" },
-  { to: "/dashboard", label: "Sell" },
-  { to: "/referrals", label: "Refer & earn" },
-  { to: "/about", label: "About" },
+const linkDefs = [
+  { to: "/", key: "nav.home" },
+  { to: "/discover", key: "nav.discover" },
+  { to: "/favorites", key: "nav.saved" },
+  { to: "/orders", key: "nav.orders" },
+  { to: "/dashboard", key: "nav.sell" },
+  { to: "/referrals", key: "nav.refer" },
+  { to: "/about", key: "nav.about" },
 ];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const { count } = useCart();
+  const { t } = useI18n();
+  const links = linkDefs.map((l) => ({ to: l.to, label: t(l.key) }));
+
 
   return (
     <header className="sticky top-0 z-40 border-b border-emerald-deep/10 bg-cream/85 backdrop-blur">
