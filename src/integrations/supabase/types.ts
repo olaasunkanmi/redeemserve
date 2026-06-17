@@ -80,40 +80,55 @@ export type Database = {
           buyer_id: string
           buyer_name: string
           buyer_phone: string
+          commission_naira: number
+          commission_rate: number
           created_at: string
           id: string
           notes: string
           pickup_zone: string
+          service_fee_naira: number
           status: string
+          subtotal_naira: number | null
           total_naira: number
           updated_at: string
           vendor_id: string
+          vendor_payout_naira: number
         }
         Insert: {
           buyer_id: string
           buyer_name?: string
           buyer_phone?: string
+          commission_naira?: number
+          commission_rate?: number
           created_at?: string
           id?: string
           notes?: string
           pickup_zone?: string
+          service_fee_naira?: number
           status?: string
+          subtotal_naira?: number | null
           total_naira?: number
           updated_at?: string
           vendor_id: string
+          vendor_payout_naira?: number
         }
         Update: {
           buyer_id?: string
           buyer_name?: string
           buyer_phone?: string
+          commission_naira?: number
+          commission_rate?: number
           created_at?: string
           id?: string
           notes?: string
           pickup_zone?: string
+          service_fee_naira?: number
           status?: string
+          subtotal_naira?: number | null
           total_naira?: number
           updated_at?: string
           vendor_id?: string
+          vendor_payout_naira?: number
         }
         Relationships: [
           {
@@ -249,11 +264,14 @@ export type Database = {
           demand: string
           description: string
           expected_customers: number
+          featured_until: string | null
           id: string
           location: string
           opens_at: string
           owner_id: string | null
           phone: string | null
+          plan: string
+          plan_renews_at: string | null
           popular_items: string[]
           pos_x: number
           pos_y: number
@@ -273,11 +291,14 @@ export type Database = {
           demand?: string
           description?: string
           expected_customers?: number
+          featured_until?: string | null
           id?: string
           location?: string
           opens_at?: string
           owner_id?: string | null
           phone?: string | null
+          plan?: string
+          plan_renews_at?: string | null
           popular_items?: string[]
           pos_x?: number
           pos_y?: number
@@ -297,11 +318,14 @@ export type Database = {
           demand?: string
           description?: string
           expected_customers?: number
+          featured_until?: string | null
           id?: string
           location?: string
           opens_at?: string
           owner_id?: string | null
           phone?: string | null
+          plan?: string
+          plan_renews_at?: string | null
           popular_items?: string[]
           pos_x?: number
           pos_y?: number
