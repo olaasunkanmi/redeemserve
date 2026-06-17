@@ -584,3 +584,74 @@ function RevenuePanel({ vendor, onChange }: { vendor: any; onChange: () => void 
     </section>
   );
 }
+
+function KycPanel({ vendor, onChange }: { vendor: any; onChange: () => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!vendor.kyc_doc_path) { setPreviewUrl(null); return; }
+      const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(vendor.kyc_doc_path, 600);
+      if (active) setPreviewUrl(data?.signedUrl ?? null);
+    })();
+    return () => { active = false; };
+  }, [vendor.kyc_doc_path]);
+
+  async function upload(file: File) {
+    setErr(null); setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "pdf";
+      const path = `${vendor.id}/id-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("kyc-documents")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { error: dbErr } = await supabase.from("vendors").update({
+        kyc_doc_path: path, kyc_status: "pending", kyc_submitted_at: new Date().toISOString(),
+      } as any).eq("id", vendor.id);
+      if (dbErr) throw dbErr;
+      onChange();
+    } catch (e: any) { setErr(e.message); }
+    finally { setUploading(false); }
+  }
+
+  const status = vendor.kyc_status || "unsubmitted";
+  const badge = ({
+    unsubmitted: { txt: "Not submitted", cls: "bg-emerald-deep/10 text-emerald-deep/70" },
+    pending:     { txt: "Pending review", cls: "bg-amber-100 text-amber-800" },
+    approved:    { txt: "Approved ✓", cls: "bg-emerald-soft text-emerald-deep" },
+    rejected:    { txt: "Rejected", cls: "bg-rose-100 text-rose-700" },
+  } as any)[status] ?? { txt: status, cls: "bg-emerald-deep/10" };
+
+  return (
+    <section className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-8">
+      <div className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-xl font-extrabold text-emerald-deep">Identity verification (KYC)</h2>
+            <p className="text-xs text-emerald-deep/60">Upload a Government ID, CAC certificate, or utility bill. Approved vendors get a verified badge & priority listing.</p>
+          </div>
+          <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase ${badge.cls}`}>{badge.txt}</span>
+        </div>
+        {vendor.kyc_notes && status === "rejected" && (
+          <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">Reviewer note: {vendor.kyc_notes}</p>
+        )}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-emerald-deep px-4 py-2 text-xs font-semibold text-cream hover:bg-emerald">
+            {uploading ? "Uploading…" : vendor.kyc_doc_path ? "Replace document" : "Upload document"}
+            <input type="file" accept="image/*,application/pdf" className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }} disabled={uploading} />
+          </label>
+          {previewUrl && (
+            <a href={previewUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-emerald-deep underline">
+              View current document
+            </a>
+          )}
+        </div>
+        {err && <p className="mt-2 text-xs text-rose-600">{err}</p>}
+      </div>
+    </section>
+  );
+}
