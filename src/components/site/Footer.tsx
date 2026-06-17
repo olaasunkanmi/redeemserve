@@ -29,7 +29,7 @@ export function Footer() {
             { label: "About RedeemServe", to: "/about" },
           ]} />
           <FooterCol title="For vendors" items={[
-            { label: "Sell on RedeemServe", to: "/dashboard" },
+            { label: "Sell on RedeemServe", to: "/auth?intent=vendor" },
             { label: "Vendor dashboard", to: "/dashboard" },
             { label: "Demand forecasts", to: "/dashboard" },
             { label: "Sign in", to: "/auth" },
