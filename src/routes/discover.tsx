@@ -1,15 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/lib/cart";
 import {
   VENDOR_CATEGORIES, STATUS_META,
   type Vendor, type VendorCategory,
 } from "@/lib/vendors";
 import {
-  Search, X, MapPin, Clock, Phone, MessageCircle, Star,
+  Search, X, MapPin, Clock, Phone, MessageCircle, Star, Plus, ArrowRight,
   Utensils, Bus, ShoppingBag, Wrench, HeartPulse, Smartphone, Store, SlidersHorizontal,
 } from "lucide-react";
+
+function itemPrice(priceRange: string, idx: number) {
+  const m = (priceRange || "").match(/(\d[\d,]*)/g);
+  const base = m ? parseInt(m[0].replace(/,/g, ""), 10) : 1000;
+  return base + idx * 250;
+}
 
 export const Route = createFileRoute("/discover")({
   head: () => ({
