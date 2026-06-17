@@ -55,87 +55,83 @@ function Home() {
   return (
     <SiteLayout>
       {/* HERO */}
-      <section className="hero-gradient text-cream">
-        <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8 sm:py-24">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-cream/20 bg-cream/10 px-3 py-1 text-xs font-medium text-cream backdrop-blur">
-                <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-gold" />
-                {liveCount > 0 ? `${liveCount} vendors live on the grounds` : "Live vendor marketplace"}
+      <section className="relative overflow-hidden bg-emerald-deep text-cream">
+        {/* Background image with gradient blend */}
+        <div className="absolute inset-0">
+          <img
+            src={cityAsset.url}
+            alt="Aerial view of Redemption City"
+            className="h-full w-full object-cover object-center opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-deep via-emerald-deep/85 to-emerald-deep/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-deep via-transparent to-emerald-deep/40" />
+        </div>
+
+        <div className="relative mx-auto max-w-[1400px] px-4 py-20 sm:px-8 sm:py-28 lg:py-36">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-cream/25 bg-cream/10 px-3 py-1 text-xs font-medium text-cream backdrop-blur">
+              <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-gold" />
+              {liveCount > 0 ? `${liveCount} vendors live on the grounds` : "Live marketplace"}
+            </span>
+
+            <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.02] tracking-tight text-balance sm:text-7xl">
+              Redemption City,{" "}
+              <span className="bg-gradient-to-r from-gold via-gold to-cream bg-clip-text text-transparent">
+                served.
               </span>
-              <h1 className="mt-5 font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-balance sm:text-6xl">
-                Find any vendor at Redemption City — in seconds.
-              </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-cream/80">
-                RedeemServe is the multivendor marketplace for the Holy Ghost
-                Service and RCCG Convention. Search verified food sellers, transport
-                operators, traders and services with live availability and WhatsApp
-                ordering.
-              </p>
+            </h1>
 
-              <form
-                action="/discover"
-                className="mt-8 flex items-center gap-2 rounded-2xl bg-surface p-2 shadow-card"
-              >
-                <div className="flex flex-1 items-center gap-3 pl-3">
-                  <Search className="h-5 w-5 text-emerald-deep/50" />
-                  <input
-                    name="q"
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    placeholder="Try ‘jollof’, ‘sachet water’, ‘keke to Mowe’…"
-                    className="w-full bg-transparent py-2.5 text-sm text-ink outline-none placeholder:text-emerald-deep/40"
-                  />
-                </div>
-                <Link
-                  to="/discover"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-deep px-5 text-sm font-semibold text-cream hover:bg-emerald"
-                >
-                  Search <ArrowRight className="h-4 w-4" />
-                </Link>
-              </form>
+            <p className="mt-5 max-w-lg text-base leading-7 text-cream/85 sm:text-lg">
+              Every vendor. One marketplace. Find food, transport, goods and services across the grounds.
+            </p>
 
-              <div className="mt-5 flex flex-wrap gap-2">
-                {VENDOR_CATEGORIES.slice(0, 4).map((c) => (
-                  <Link
-                    key={c}
-                    to="/discover"
-                    className="rounded-full border border-cream/20 bg-cream/5 px-3 py-1.5 text-xs font-medium text-cream/85 hover:border-gold hover:text-gold"
-                  >
-                    {c}
-                  </Link>
-                ))}
+            <form
+              action="/discover"
+              className="mt-8 flex items-center gap-2 rounded-2xl bg-surface/95 p-2 shadow-card backdrop-blur"
+            >
+              <div className="flex flex-1 items-center gap-3 pl-3">
+                <Search className="h-5 w-5 text-emerald-deep/50" />
+                <input
+                  name="q"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Try ‘jollof’, ‘keke to Mowe’…"
+                  className="w-full bg-transparent py-2.5 text-sm text-ink outline-none placeholder:text-emerald-deep/40"
+                />
               </div>
+              <Link
+                to="/discover"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-deep px-5 text-sm font-semibold text-cream hover:bg-emerald"
+              >
+                Search <ArrowRight className="h-4 w-4" />
+              </Link>
+            </form>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {VENDOR_CATEGORIES.slice(0, 4).map((c) => (
+                <Link
+                  key={c}
+                  to="/discover"
+                  className="rounded-full border border-cream/25 bg-cream/5 px-3 py-1.5 text-xs font-medium text-cream/90 backdrop-blur hover:border-gold hover:text-gold"
+                >
+                  {c}
+                </Link>
+              ))}
             </div>
 
-            <div className="relative">
-              <div className="grid grid-cols-2 gap-4">
-                <Tile big label="Vendors on the platform" value={vendors.length.toString()} sub="and growing every service" />
-                <Tile label="Avg. arrival" value="500k+" sub="per Holy Ghost Service" />
-                <Tile label="Live now" value={liveCount.toString()} sub="open on the grounds" />
-                <Tile label="Categories" value={String(Object.keys(counts).length || VENDOR_CATEGORIES.length)} sub="food · transport · goods…" />
-              </div>
-              <div className="mt-4 rounded-2xl border border-cream/15 bg-cream/5 p-5 backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-wider text-gold">Live now</p>
-                <ul className="mt-3 space-y-2.5">
-                  {(vendors.filter((v) => v.status === "live").slice(0, 3).length
-                    ? vendors.filter((v) => v.status === "live").slice(0, 3)
-                    : featured.slice(0, 3)
-                  ).map((v) => (
-                    <li key={v.id} className="flex items-center justify-between gap-3 text-sm">
-                      <div className="flex items-center gap-2 truncate">
-                        <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-emerald-400" />
-                        <span className="truncate font-medium text-cream">{v.business_name}</span>
-                      </div>
-                      <span className="shrink-0 text-xs text-cream/60">Zone {v.zone}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {/* Inline stat strip */}
+            <div className="mt-10 grid max-w-lg grid-cols-3 gap-6 border-t border-cream/15 pt-6">
+              <Stat value={vendors.length.toString()} label="Vendors" />
+              <Stat value={liveCount.toString()} label="Live now" />
+              <Stat value="500k+" label="Worshippers" />
             </div>
           </div>
         </div>
+
+        {/* Bottom fade into next section */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background" />
       </section>
+
       <LiveStats />
 
       {/* CATEGORIES */}
