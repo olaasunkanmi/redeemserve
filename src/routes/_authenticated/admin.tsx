@@ -104,6 +104,64 @@ function Admin() {
           </table>
         </div>
       </section>
+      <KycQueue vendors={vendors} reload={async () => {
+        const { data: vs } = await supabase.from("vendors").select("*").order("created_at", { ascending: false });
+        setVendors(vs ?? []);
+      }} />
     </SiteLayout>
+  );
+}
+
+function KycQueue({ vendors, reload }: { vendors: any[]; reload: () => void }) {
+  const pending = vendors.filter((v) => v.kyc_status === "pending");
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    (async () => {
+      const map: Record<string, string> = {};
+      for (const v of pending) {
+        if (!v.kyc_doc_path) continue;
+        const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(v.kyc_doc_path, 600);
+        if (data?.signedUrl) map[v.id] = data.signedUrl;
+      }
+      setUrls(map);
+    })();
+  }, [pending.length]);
+
+  async function decide(id: string, status: "approved" | "rejected") {
+    await supabase.rpc("admin_set_kyc" as any, { _vendor_id: id, _status: status, _notes: notes[id] || null });
+    reload();
+  }
+
+  return (
+    <section className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-8">
+      <div className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
+        <h2 className="font-display text-xl font-extrabold text-emerald-deep">KYC review queue</h2>
+        <p className="text-xs text-emerald-deep/60">{pending.length} document(s) awaiting review</p>
+        {pending.length === 0 ? (
+          <p className="mt-6 text-sm text-emerald-deep/55">All clear — no pending documents.</p>
+        ) : (
+          <div className="mt-6 space-y-4">
+            {pending.map((v) => (
+              <div key={v.id} className="rounded-xl border border-emerald-deep/10 bg-cream p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-emerald-deep">{v.business_name}</p>
+                    <p className="text-xs text-emerald-deep/60">{v.category} · Zone {v.zone} · submitted {v.kyc_submitted_at ? new Date(v.kyc_submitted_at).toLocaleString() : "—"}</p>
+                  </div>
+                  {urls[v.id] && <a href={urls[v.id]} target="_blank" rel="noreferrer" className="text-xs font-semibold text-emerald-deep underline">Open document</a>}
+                </div>
+                <textarea placeholder="Reviewer note (optional, shown to vendor if rejected)" value={notes[v.id] || ""} onChange={(e) => setNotes({ ...notes, [v.id]: e.target.value })} className="mt-3 w-full rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-xs" rows={2} />
+                <div className="mt-3 flex gap-2">
+                  <button onClick={() => decide(v.id, "approved")} className="inline-flex items-center gap-1 rounded-full bg-emerald-deep px-3 py-1 text-[11px] font-semibold text-cream"><Check className="h-3 w-3"/>Approve & verify</button>
+                  <button onClick={() => decide(v.id, "rejected")} className="inline-flex items-center gap-1 rounded-full border border-rose-300 px-3 py-1 text-[11px] font-semibold text-rose-600"><X className="h-3 w-3"/>Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
