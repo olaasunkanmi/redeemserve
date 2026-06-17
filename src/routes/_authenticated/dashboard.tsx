@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { VENDOR_CATEGORIES, ZONES, STATUS_META } from "@/lib/vendors";
-import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star, Sparkles, Zap, Crown, Wallet } from "lucide-react";
+import { isValidNigerianPhone, toE164Nigerian, NG_PHONE_HINT } from "@/lib/phone";
+import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star, Sparkles, Zap, Crown, Wallet, ShieldCheck, Camera, FileText, IdCard, CheckCircle2, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Vendor dashboard — RedeemServe" }] }),
@@ -177,18 +178,26 @@ function VendorForm({ existing, ownerId, onDone }: { existing: VendorRow | null;
     if (s === 1) return f.business_name.trim() && f.category && f.zone;
     if (s === 2) return f.description.trim().length >= 10;
     if (s === 3) return parseInt(f.capacity || "0", 10) > 0;
-    if (s === 4) return f.phone.trim();
+    if (s === 4) {
+      if (!isValidNigerianPhone(f.phone)) return false;
+      if (f.whatsapp && !isValidNigerianPhone(f.whatsapp)) return false;
+      return true;
+    }
     return true;
   }
 
   async function save() {
     setErr(null); setSaving(true);
+    const phoneE164 = toE164Nigerian(f.phone);
+    const waE164 = f.whatsapp ? toE164Nigerian(f.whatsapp) : null;
+    if (!phoneE164) { setErr(NG_PHONE_HINT); setSaving(false); return; }
+    if (f.whatsapp && !waE164) { setErr(`WhatsApp: ${NG_PHONE_HINT}`); setSaving(false); return; }
     const payload = {
       owner_id: ownerId,
       business_name: f.business_name, category: f.category, zone: f.zone,
       description: f.description, capacity: parseInt(f.capacity || "0", 10),
       popular_items: f.popular.split(",").map((s) => s.trim()).filter(Boolean),
-      price_range: f.price_range, phone: f.phone || null, whatsapp: f.whatsapp || null,
+      price_range: f.price_range, phone: phoneE164, whatsapp: waE164,
       opens_at: f.opens_at, status: f.status,
       pos_x: Math.floor(20 + Math.random() * 60), pos_y: Math.floor(20 + Math.random() * 60),
     };
@@ -201,7 +210,11 @@ function VendorForm({ existing, ownerId, onDone }: { existing: VendorRow | null;
 
   function next(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!stepValid(step)) { setErr("Please complete this step before continuing."); return; }
+    if (!stepValid(step)) {
+      if (step === 4) setErr(NG_PHONE_HINT);
+      else setErr("Please complete this step before continuing.");
+      return;
+    }
     setErr(null);
     if (step < 4) setStep(step + 1); else save();
   }
@@ -273,10 +286,11 @@ function VendorForm({ existing, ownerId, onDone }: { existing: VendorRow | null;
             <>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="Phone" required>
-                  <input required type="tel" value={f.phone ?? ""} onChange={(e) => setF({ ...f, phone: e.target.value })} className="ed-input" placeholder="+234…" />
+                  <input required type="tel" inputMode="tel" autoComplete="tel" value={f.phone ?? ""} onChange={(e) => setF({ ...f, phone: e.target.value })} className={`ed-input ${f.phone && !isValidNigerianPhone(f.phone) ? "!border-rose-400" : ""}`} placeholder="08031234567" />
+                  <p className="mt-1 text-[11px] text-emerald-deep/55">{NG_PHONE_HINT}</p>
                 </Field>
                 <Field label="WhatsApp (optional)">
-                  <input value={f.whatsapp ?? ""} onChange={(e) => setF({ ...f, whatsapp: e.target.value })} className="ed-input" placeholder="+234…" />
+                  <input type="tel" inputMode="tel" value={f.whatsapp ?? ""} onChange={(e) => setF({ ...f, whatsapp: e.target.value })} className={`ed-input ${f.whatsapp && !isValidNigerianPhone(f.whatsapp) ? "!border-rose-400" : ""}`} placeholder="08031234567" />
                 </Field>
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
