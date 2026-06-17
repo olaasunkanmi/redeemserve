@@ -301,7 +301,7 @@ function VendorCard({ v }: { v: V }) {
 function Panel({ title, color, steps, cta }: {
   title: string; color: "emerald" | "gold";
   steps: { icon: any; t: string; b: string }[];
-  cta: { label: string; to: string };
+  cta: { label: string; to: string; search?: Record<string, string> };
 }) {
   return (
     <div className="rounded-3xl border border-emerald-deep/10 bg-surface p-8 shadow-card">
