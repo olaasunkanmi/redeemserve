@@ -154,7 +154,7 @@ function Discover() {
                 </li>
               ))}
             </ul>
-            <GroundsMap vendors={filtered} selected={selected} onSelect={setSelected} />
+            <LiveMap vendors={filtered as any} />
           </div>
         )}
       </section>
