@@ -18,6 +18,8 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const [intent, setIntent] = useState<"buyer" | "vendor">("buyer");
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,11 +29,19 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const destination = () => {
+    if (redirectTo && redirectTo.startsWith("/")) return redirectTo;
+    return intent === "vendor" ? "/dashboard" : "/discover";
+  };
+
   useEffect(() => {
-    // Pre-fill referral code from ?ref= and remember across redirects
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       const ref = url.searchParams.get("ref");
+      const i = url.searchParams.get("intent");
+      const r = url.searchParams.get("redirect");
+      if (i === "vendor" || i === "buyer") setIntent(i);
+      if (r) setRedirectTo(r);
       if (ref) {
         setReferralCode(ref.toUpperCase());
         try { sessionStorage.setItem("rs_ref", ref.toUpperCase()); } catch {}
@@ -41,7 +51,13 @@ function AuthPage() {
       }
     }
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
+      if (data.session) {
+        const url = new URL(window.location.href);
+        const i = url.searchParams.get("intent");
+        const r = url.searchParams.get("redirect");
+        const to = (r && r.startsWith("/")) ? r : (i === "vendor" ? "/dashboard" : "/discover");
+        navigate({ to });
+      }
     });
   }, [navigate]);
 
@@ -68,8 +84,8 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin + "/dashboard",
-            data: { full_name: fullName, phone: normalizedPhone },
+            emailRedirectTo: window.location.origin + destination(),
+            data: { full_name: fullName, phone: normalizedPhone, intent },
           },
         });
         if (error) throw error;
@@ -79,7 +95,7 @@ function AuthPage() {
         if (error) throw error;
         await redeemIfAny();
       }
-      navigate({ to: "/dashboard" });
+      navigate({ to: destination() });
     } catch (e: any) {
       setErr(e.message || "Something went wrong");
     } finally {
@@ -91,11 +107,12 @@ function AuthPage() {
   async function google() {
     setErr(null);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
+      redirect_uri: window.location.origin + destination(),
     });
     if (result.error) setErr(result.error.message);
-    else if (!result.redirected) navigate({ to: "/dashboard" });
+    else if (!result.redirected) navigate({ to: destination() });
   }
+
 
   return (
     <main className="relative min-h-screen bg-cream">
