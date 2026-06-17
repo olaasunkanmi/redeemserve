@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { VENDOR_CATEGORIES, ZONES, STATUS_META } from "@/lib/vendors";
-import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star } from "lucide-react";
+import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star, Sparkles, Zap, Crown, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Vendor dashboard — RedeemServe" }] }),
@@ -73,6 +73,7 @@ function Dashboard() {
       ) : (
         <>
           <VendorOrdersPanel vendorId={vendor.id} />
+          <RevenuePanel vendor={vendor as any} onChange={load} />
           <VendorDashboard vendor={vendor} onEdit={() => setEditing(true)} onDelete={async () => {
             if (!confirm("Delete this vendor listing?")) return;
             await supabase.from("vendors").delete().eq("id", vendor.id);
