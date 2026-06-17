@@ -11,6 +11,7 @@ const links = [
   { to: "/favorites", label: "Saved" },
   { to: "/orders", label: "My orders" },
   { to: "/dashboard", label: "Sell" },
+  { to: "/referrals", label: "Refer & earn" },
   { to: "/about", label: "About" },
 ];
 
