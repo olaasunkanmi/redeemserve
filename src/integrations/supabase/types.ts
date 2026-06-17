@@ -146,6 +146,8 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          referral_code: string | null
+          referred_by: string | null
           updated_at: string
         }
         Insert: {
@@ -153,6 +155,8 @@ export type Database = {
           full_name?: string | null
           id: string
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -160,7 +164,36 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+          reward_naira: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+          reward_naira?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
+          reward_naira?: number
+          status?: string
         }
         Relationships: []
       }
@@ -266,6 +299,8 @@ export type Database = {
           expected_customers: number
           featured_until: string | null
           id: string
+          lat: number | null
+          lng: number | null
           location: string
           opens_at: string
           owner_id: string | null
@@ -293,6 +328,8 @@ export type Database = {
           expected_customers?: number
           featured_until?: string | null
           id?: string
+          lat?: number | null
+          lng?: number | null
           location?: string
           opens_at?: string
           owner_id?: string | null
@@ -320,6 +357,8 @@ export type Database = {
           expected_customers?: number
           featured_until?: string | null
           id?: string
+          lat?: number | null
+          lng?: number | null
           location?: string
           opens_at?: string
           owner_id?: string | null
@@ -344,6 +383,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_or_create_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -351,6 +391,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      redeem_referral_code: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "vendor" | "attendee"
