@@ -4,6 +4,7 @@ import { SiteLayout } from "@/components/site/Layout";
 import { LiveStats } from "@/components/site/LiveStats";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, VENDOR_CATEGORIES } from "@/lib/vendors";
+import cityAsset from "@/assets/redemption-city.jpg.asset.json";
 import {
   Search, MapPin, Star, ArrowRight, Utensils, Bus, ShoppingBag,
   Wrench, HeartPulse, Smartphone, Store, ShieldCheck, BarChart3,
