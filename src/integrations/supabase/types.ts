@@ -299,6 +299,11 @@ export type Database = {
           expected_customers: number
           featured_until: string | null
           id: string
+          kyc_doc_path: string | null
+          kyc_notes: string | null
+          kyc_reviewed_at: string | null
+          kyc_status: string
+          kyc_submitted_at: string | null
           lat: number | null
           lng: number | null
           location: string
@@ -328,6 +333,11 @@ export type Database = {
           expected_customers?: number
           featured_until?: string | null
           id?: string
+          kyc_doc_path?: string | null
+          kyc_notes?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_status?: string
+          kyc_submitted_at?: string | null
           lat?: number | null
           lng?: number | null
           location?: string
@@ -357,6 +367,11 @@ export type Database = {
           expected_customers?: number
           featured_until?: string | null
           id?: string
+          kyc_doc_path?: string | null
+          kyc_notes?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_status?: string
+          kyc_submitted_at?: string | null
           lat?: number | null
           lng?: number | null
           location?: string
@@ -383,6 +398,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_kyc: {
+        Args: { _notes?: string; _status: string; _vendor_id: string }
+        Returns: undefined
+      }
       get_or_create_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {

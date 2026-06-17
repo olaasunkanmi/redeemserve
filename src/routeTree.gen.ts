@@ -24,6 +24,7 @@ import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicConciergeRouteImport } from './routes/api/public/concierge'
+import { Route as ApiPublicHooksForecastDemandRouteImport } from './routes/api/public/hooks/forecast-demand'
 
 const VendorsRoute = VendorsRouteImport.update({
   id: '/vendors',
@@ -99,6 +100,12 @@ const ApiPublicConciergeRoute = ApiPublicConciergeRouteImport.update({
   path: '/api/public/concierge',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksForecastDemandRoute =
+  ApiPublicHooksForecastDemandRouteImport.update({
+    id: '/api/public/hooks/forecast-demand',
+    path: '/api/public/hooks/forecast-demand',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/referrals': typeof AuthenticatedReferralsRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
+  '/api/public/hooks/forecast-demand': typeof ApiPublicHooksForecastDemandRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -131,6 +139,7 @@ export interface FileRoutesByTo {
   '/referrals': typeof AuthenticatedReferralsRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
+  '/api/public/hooks/forecast-demand': typeof ApiPublicHooksForecastDemandRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -149,6 +158,7 @@ export interface FileRoutesById {
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
+  '/api/public/hooks/forecast-demand': typeof ApiPublicHooksForecastDemandRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/referrals'
     | '/vendor/$id'
     | '/api/public/concierge'
+    | '/api/public/hooks/forecast-demand'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/referrals'
     | '/vendor/$id'
     | '/api/public/concierge'
+    | '/api/public/hooks/forecast-demand'
   id:
     | '__root__'
     | '/'
@@ -200,6 +212,7 @@ export interface FileRouteTypes {
     | '/_authenticated/referrals'
     | '/vendor/$id'
     | '/api/public/concierge'
+    | '/api/public/hooks/forecast-demand'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -213,6 +226,7 @@ export interface RootRouteChildren {
   VendorsRoute: typeof VendorsRoute
   VendorIdRoute: typeof VendorIdRoute
   ApiPublicConciergeRoute: typeof ApiPublicConciergeRoute
+  ApiPublicHooksForecastDemandRoute: typeof ApiPublicHooksForecastDemandRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -322,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicConciergeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/forecast-demand': {
+      id: '/api/public/hooks/forecast-demand'
+      path: '/api/public/hooks/forecast-demand'
+      fullPath: '/api/public/hooks/forecast-demand'
+      preLoaderRoute: typeof ApiPublicHooksForecastDemandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -355,6 +376,7 @@ const rootRouteChildren: RootRouteChildren = {
   VendorsRoute: VendorsRoute,
   VendorIdRoute: VendorIdRoute,
   ApiPublicConciergeRoute: ApiPublicConciergeRoute,
+  ApiPublicHooksForecastDemandRoute: ApiPublicHooksForecastDemandRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

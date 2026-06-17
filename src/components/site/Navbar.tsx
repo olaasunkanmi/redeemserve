@@ -4,21 +4,26 @@ import { Menu, X, Store, Search, User, ShoppingBag, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/lib/cart";
 import { DarkModeToggle } from "./DarkModeToggle";
+import { LanguageToggle } from "./LanguageToggle";
+import { useI18n } from "@/lib/i18n";
 
-const links = [
-  { to: "/", label: "Home" },
-  { to: "/discover", label: "Browse vendors" },
-  { to: "/favorites", label: "Saved" },
-  { to: "/orders", label: "My orders" },
-  { to: "/dashboard", label: "Sell" },
-  { to: "/referrals", label: "Refer & earn" },
-  { to: "/about", label: "About" },
+const linkDefs = [
+  { to: "/", key: "nav.home" },
+  { to: "/discover", key: "nav.discover" },
+  { to: "/favorites", key: "nav.saved" },
+  { to: "/orders", key: "nav.orders" },
+  { to: "/dashboard", key: "nav.sell" },
+  { to: "/referrals", key: "nav.refer" },
+  { to: "/about", key: "nav.about" },
 ];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const { count } = useCart();
+  const { t } = useI18n();
+  const links = linkDefs.map((l) => ({ to: l.to, label: t(l.key) }));
+
 
   return (
     <header className="sticky top-0 z-40 border-b border-emerald-deep/10 bg-cream/85 backdrop-blur">
@@ -52,8 +57,9 @@ export function Navbar() {
             className="hidden h-9 items-center gap-2 rounded-full border border-emerald-deep/15 bg-surface px-4 text-sm text-emerald-deep/60 hover:border-emerald-deep/30 hover:text-emerald-deep sm:flex"
           >
             <Search className="h-4 w-4" />
-            <span>Search vendors…</span>
+            <span>{t("common.search")}</span>
           </Link>
+          <LanguageToggle />
           <DarkModeToggle />
           {user && (
             <Link to="/favorites" className="hidden h-9 w-9 place-items-center rounded-full border border-emerald-deep/15 text-emerald-deep hover:bg-emerald-soft sm:grid" aria-label="Saved vendors">
@@ -69,14 +75,14 @@ export function Navbar() {
               to="/dashboard"
               className="inline-flex h-9 items-center gap-2 rounded-full bg-emerald-deep px-4 text-sm font-semibold text-cream hover:bg-emerald"
             >
-              <User className="h-4 w-4" /> My portal
+              <User className="h-4 w-4" /> {t("nav.portal")}
             </Link>
           ) : (
             <Link
               to="/auth"
               className="inline-flex h-9 items-center rounded-full bg-emerald-deep px-4 text-sm font-semibold text-cream hover:bg-emerald"
             >
-              Sign in
+              {t("nav.signin")}
             </Link>
           )}
           <button
