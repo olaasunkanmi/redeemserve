@@ -209,7 +209,7 @@ function Home() {
           <Panel
             title="For vendors"
             color="gold"
-            cta={{ label: "Start selling", to: "/dashboard" }}
+            cta={{ label: "Start selling", to: "/auth", search: { intent: "vendor" } }}
             steps={[
               { icon: Store, t: "Create your storefront", b: "List your business, items and price range in under three minutes." },
               { icon: BarChart3, t: "Get demand forecasts", b: "AI-projected customer counts and peak hours, trained on RCCG patterns." },
