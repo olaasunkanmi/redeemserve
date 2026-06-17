@@ -1,15 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/lib/cart";
 import {
   VENDOR_CATEGORIES, STATUS_META,
   type Vendor, type VendorCategory,
 } from "@/lib/vendors";
 import {
-  Search, X, MapPin, Clock, Phone, MessageCircle, Star,
+  Search, X, MapPin, Clock, Phone, MessageCircle, Star, Plus, ArrowRight,
   Utensils, Bus, ShoppingBag, Wrench, HeartPulse, Smartphone, Store, SlidersHorizontal,
 } from "lucide-react";
+
+function itemPrice(priceRange: string, idx: number) {
+  const m = (priceRange || "").match(/(\d[\d,]*)/g);
+  const base = m ? parseInt(m[0].replace(/,/g, ""), 10) : 1000;
+  return base + idx * 250;
+}
 
 export const Route = createFileRoute("/discover")({
   head: () => ({
@@ -308,24 +315,47 @@ function VendorSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void 
           </div>
           {vendor.popularItems.length > 0 && (
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-deep/60">Popular items</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {vendor.popularItems.map((i) => (
-                  <span key={i} className="rounded-full bg-emerald-soft px-2.5 py-1 text-xs text-emerald-deep">{i}</span>
-                ))}
+              <div className="flex items-end justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-deep/60">Menu / Products</p>
+                <Link to="/vendor/$id" params={{ id: vendor.id }} className="text-xs font-semibold text-emerald hover:text-emerald-deep">Full menu →</Link>
               </div>
+              <ul className="mt-3 divide-y divide-emerald-deep/10 rounded-xl border border-emerald-deep/10">
+                {vendor.popularItems.map((name, i) => {
+                  const price = itemPrice(vendor.priceRange, i);
+                  return <ProductRow key={name} vendor={vendor} name={name} price={price} />;
+                })}
+              </ul>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <button className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-deep py-3 text-sm font-semibold text-cream hover:bg-emerald">
-              <Phone className="h-4 w-4" /> Call vendor
-            </button>
-            <button className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-deep py-3 text-sm font-semibold text-emerald-deep hover:bg-emerald-deep hover:text-cream">
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </button>
+          <div className="grid gap-3 pt-1 sm:grid-cols-2">
+            <Link to="/vendor/$id" params={{ id: vendor.id }} className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-deep py-3 text-sm font-semibold text-cream hover:bg-emerald">
+              <ShoppingBag className="h-4 w-4" /> Open vendor & order
+            </Link>
+            <Link to="/checkout" className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-deep py-3 text-sm font-semibold text-emerald-deep hover:bg-emerald-soft">
+              Go to checkout <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function ProductRow({ vendor, name, price }: { vendor: Vendor; name: string; price: number }) {
+  const { add } = useCart();
+  const [added, setAdded] = useState(false);
+  return (
+    <li className="flex items-center justify-between gap-3 px-4 py-3">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-emerald-deep">{name}</p>
+        <p className="text-xs text-emerald-deep/60 tabular">₦{price.toLocaleString()}</p>
+      </div>
+      <button
+        onClick={() => { add(vendor.id, vendor.name, { name, unit_price_naira: price, quantity: 1 }); setAdded(true); setTimeout(() => setAdded(false), 1200); }}
+        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${added ? "bg-gold text-emerald-deep" : "bg-emerald-deep text-cream hover:bg-emerald"}`}
+      >
+        <Plus className="h-3.5 w-3.5" /> {added ? "Added" : "Add"}
+      </button>
+    </li>
   );
 }
