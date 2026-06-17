@@ -211,7 +211,11 @@ function AuthPage() {
                 type="submit" disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-deep px-4 py-3 text-sm font-semibold text-cream hover:bg-emerald disabled:opacity-50"
               >
-                {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
+                {loading
+                  ? "Please wait…"
+                  : mode === "signup"
+                    ? (intent === "vendor" ? "Create vendor account" : "Create account")
+                    : "Sign in"}
                 <ArrowUpRight className="h-4 w-4" />
               </button>
             </form>
