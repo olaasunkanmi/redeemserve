@@ -326,7 +326,8 @@ function Panel({ title, color, steps, cta }: {
         ))}
       </ul>
       <Link
-        to={cta.to}
+        to={cta.to as any}
+        search={cta.search as any}
         className="mt-8 inline-flex items-center gap-2 rounded-full bg-emerald-deep px-5 py-2.5 text-sm font-semibold text-cream hover:bg-emerald"
       >
         {cta.label} <ArrowRight className="h-4 w-4" />
