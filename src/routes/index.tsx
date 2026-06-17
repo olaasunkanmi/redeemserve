@@ -247,6 +247,15 @@ function Home() {
   );
 }
 
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <p className="font-display text-2xl font-extrabold text-cream tabular sm:text-3xl">{value}</p>
+      <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-gold/90">{label}</p>
+    </div>
+  );
+}
+
 function Tile({ label, value, sub, big }: { label: string; value: string; sub?: string; big?: boolean }) {
   return (
     <div className={`rounded-2xl border border-cream/15 bg-cream/5 p-5 backdrop-blur ${big ? "row-span-1" : ""}`}>
