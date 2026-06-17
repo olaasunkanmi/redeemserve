@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
+import { LiveMap } from "@/components/site/LiveMap";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import {
