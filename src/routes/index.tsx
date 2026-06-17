@@ -181,7 +181,7 @@ function Home() {
           {featured.length === 0 ? (
             <div className="mt-8 rounded-2xl border-2 border-dashed border-emerald-deep/15 bg-surface p-10 text-center">
               <p className="text-sm text-emerald-deep/65">No vendors yet. Be the first to list your business.</p>
-              <Link to="/dashboard" className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-deep px-4 py-2 text-sm font-semibold text-cream hover:bg-emerald">
+              <Link to="/auth" search={{ intent: "vendor" } as any} className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-deep px-4 py-2 text-sm font-semibold text-cream hover:bg-emerald">
                 Become a vendor <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
