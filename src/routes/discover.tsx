@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
+import { LiveMap } from "@/components/site/LiveMap";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import {
@@ -62,6 +63,7 @@ function Discover() {
           opensAt: d.opens_at,
           featured: d.featured_until && new Date(d.featured_until).getTime() > now,
           plan: d.plan as "free" | "pro" | "premium",
+          lat: d.lat, lng: d.lng, business_name: d.business_name,
         } as any));
         mapped.sort((a: any, b: any) => Number(b.featured) - Number(a.featured));
         setVendors(mapped);
@@ -152,7 +154,7 @@ function Discover() {
                 </li>
               ))}
             </ul>
-            <GroundsMap vendors={filtered} selected={selected} onSelect={setSelected} />
+            <LiveMap vendors={filtered as any} />
           </div>
         )}
       </section>
