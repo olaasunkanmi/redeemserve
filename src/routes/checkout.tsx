@@ -5,6 +5,7 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ZONES } from "@/lib/vendors";
+import { isValidNigerianPhone, toE164Nigerian, NG_PHONE_HINT } from "@/lib/phone";
 import { ShoppingBag, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
@@ -25,11 +26,13 @@ function Checkout() {
     e.preventDefault(); setErr(null);
     if (!user) { navigate({ to: "/auth" }); return; }
     if (!cart || !cart.items.length) return;
+    const e164 = toE164Nigerian(f.phone);
+    if (!e164) { setErr(NG_PHONE_HINT); return; }
     setPlacing(true);
     const { data: order, error } = await supabase.from("orders" as any).insert({
       buyer_id: user.id, vendor_id: cart.vendor_id,
       subtotal_naira: total, total_naira: total,
-      buyer_name: f.name, buyer_phone: f.phone,
+      buyer_name: f.name, buyer_phone: e164,
       pickup_zone: f.zone, notes: f.notes,
     }).select().single();
     if (error || !order) { setErr(error?.message ?? "Failed"); setPlacing(false); return; }
@@ -84,7 +87,17 @@ function Checkout() {
               <input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="ed-input" placeholder="Full name"/>
             </Field>
             <Field label="Phone (vendor will call)" required>
-              <input required type="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} className="ed-input" placeholder="+234…"/>
+              <input
+                required
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={f.phone}
+                onChange={(e) => setF({ ...f, phone: e.target.value })}
+                className={`ed-input ${f.phone && !isValidNigerianPhone(f.phone) ? "!border-rose-400" : ""}`}
+                placeholder="08031234567 or +2348031234567"
+              />
+              <p className="mt-1 text-[11px] text-emerald-deep/55">{NG_PHONE_HINT}</p>
             </Field>
             <Field label="Pickup zone" required>
               <select value={f.zone} onChange={(e) => setF({ ...f, zone: e.target.value })} className="ed-input">
