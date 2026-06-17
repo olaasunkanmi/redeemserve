@@ -96,6 +96,7 @@ function VendorPage() {
 
   return (
     <SiteLayout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="border-b border-emerald-deep/10 bg-gradient-to-br from-emerald-deep to-emerald text-cream">
         <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-8 sm:py-14">
           <div className="flex flex-wrap items-start justify-between gap-6">
