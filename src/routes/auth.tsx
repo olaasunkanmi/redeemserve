@@ -18,6 +18,8 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const [intent, setIntent] = useState<"buyer" | "vendor">("buyer");
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,11 +29,19 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const destination = () => {
+    if (redirectTo && redirectTo.startsWith("/")) return redirectTo;
+    return intent === "vendor" ? "/dashboard" : "/discover";
+  };
+
   useEffect(() => {
-    // Pre-fill referral code from ?ref= and remember across redirects
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       const ref = url.searchParams.get("ref");
+      const i = url.searchParams.get("intent");
+      const r = url.searchParams.get("redirect");
+      if (i === "vendor" || i === "buyer") setIntent(i);
+      if (r) setRedirectTo(r);
       if (ref) {
         setReferralCode(ref.toUpperCase());
         try { sessionStorage.setItem("rs_ref", ref.toUpperCase()); } catch {}
@@ -41,7 +51,13 @@ function AuthPage() {
       }
     }
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
+      if (data.session) {
+        const url = new URL(window.location.href);
+        const i = url.searchParams.get("intent");
+        const r = url.searchParams.get("redirect");
+        const to = (r && r.startsWith("/")) ? r : (i === "vendor" ? "/dashboard" : "/discover");
+        navigate({ to });
+      }
     });
   }, [navigate]);
 
@@ -68,8 +84,8 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin + "/dashboard",
-            data: { full_name: fullName, phone: normalizedPhone },
+            emailRedirectTo: window.location.origin + destination(),
+            data: { full_name: fullName, phone: normalizedPhone, intent },
           },
         });
         if (error) throw error;
@@ -79,7 +95,7 @@ function AuthPage() {
         if (error) throw error;
         await redeemIfAny();
       }
-      navigate({ to: "/dashboard" });
+      navigate({ to: destination() });
     } catch (e: any) {
       setErr(e.message || "Something went wrong");
     } finally {
@@ -91,11 +107,12 @@ function AuthPage() {
   async function google() {
     setErr(null);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
+      redirect_uri: window.location.origin + destination(),
     });
     if (result.error) setErr(result.error.message);
-    else if (!result.redirected) navigate({ to: "/dashboard" });
+    else if (!result.redirected) navigate({ to: destination() });
   }
+
 
   return (
     <main className="relative min-h-screen bg-cream">
@@ -108,13 +125,18 @@ function AuthPage() {
             Redeem<span className="text-gold">Serve</span>
           </Link>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-gold">For vendors & attendees</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gold">
+              {intent === "vendor" ? "For vendors" : "For attendees"}
+            </p>
             <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight">
-              One account. Every service. Every vendor.
+              {intent === "vendor"
+                ? "Start selling at Redemption City."
+                : "Discover every vendor on the grounds."}
             </h1>
             <p className="mt-5 max-w-md text-sm leading-7 text-cream/80">
-              Register your stall, manage your storefront, receive AI demand
-              forecasts and reach every attendee on the grounds — without an app.
+              {intent === "vendor"
+                ? "Register your stall, manage your storefront, receive AI demand forecasts and reach every attendee on the grounds — without an app."
+                : "Order food, water, transport, charging, medical care and more from verified vendors. One account works for buying and selling."}
             </p>
           </div>
           <p className="text-xs text-cream/50">The marketplace for Redemption City events</p>
@@ -125,11 +147,35 @@ function AuthPage() {
             <Link to="/" className="font-display text-xl font-extrabold text-emerald-deep lg:hidden">
               Redeem<span className="text-gold">Serve</span>
             </Link>
-            <h2 className="mt-8 font-display text-3xl font-extrabold text-emerald-deep lg:mt-0">
-              {mode === "signup" ? "Create your account" : "Welcome back"}
+
+            <div className="mt-8 inline-flex rounded-full border border-emerald-deep/15 bg-surface p-1 text-xs font-semibold lg:mt-0">
+              <button
+                type="button"
+                onClick={() => setIntent("buyer")}
+                className={`rounded-full px-4 py-1.5 transition-colors ${intent === "buyer" ? "bg-emerald-deep text-cream" : "text-emerald-deep/70 hover:text-emerald-deep"}`}
+              >
+                I want to buy
+              </button>
+              <button
+                type="button"
+                onClick={() => setIntent("vendor")}
+                className={`rounded-full px-4 py-1.5 transition-colors ${intent === "vendor" ? "bg-emerald-deep text-cream" : "text-emerald-deep/70 hover:text-emerald-deep"}`}
+              >
+                I want to sell
+              </button>
+            </div>
+
+            <h2 className="mt-5 font-display text-3xl font-extrabold text-emerald-deep">
+              {mode === "signup"
+                ? (intent === "vendor" ? "Create your vendor account" : "Create your account")
+                : "Welcome back"}
             </h2>
             <p className="mt-2 text-sm text-emerald-deep/65">
-              {mode === "signup" ? "Sell or shop on RedeemServe." : "Sign in to manage your storefront."}
+              {mode === "signup"
+                ? (intent === "vendor"
+                    ? "We'll guide you through storefront setup and KYC after signup."
+                    : "Browse, order and review vendors on the grounds.")
+                : "Sign in to continue."}
             </p>
 
             <button
@@ -165,7 +211,11 @@ function AuthPage() {
                 type="submit" disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-deep px-4 py-3 text-sm font-semibold text-cream hover:bg-emerald disabled:opacity-50"
               >
-                {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
+                {loading
+                  ? "Please wait…"
+                  : mode === "signup"
+                    ? (intent === "vendor" ? "Create vendor account" : "Create account")
+                    : "Sign in"}
                 <ArrowUpRight className="h-4 w-4" />
               </button>
             </form>

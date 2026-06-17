@@ -29,7 +29,7 @@ export function Footer() {
             { label: "About RedeemServe", to: "/about" },
           ]} />
           <FooterCol title="For vendors" items={[
-            { label: "Sell on RedeemServe", to: "/dashboard" },
+            { label: "Sell on RedeemServe", to: "/auth?intent=vendor" },
             { label: "Vendor dashboard", to: "/dashboard" },
             { label: "Demand forecasts", to: "/dashboard" },
             { label: "Sign in", to: "/auth" },
@@ -56,11 +56,17 @@ function FooterCol({ title, items }: { title: string; items: { label: string; to
     <div className="lg:col-span-2">
       <p className="text-xs font-semibold uppercase tracking-wider text-emerald-deep">{title}</p>
       <ul className="mt-4 space-y-2.5 text-sm text-emerald-deep/70">
-        {items.map((i) => (
-          <li key={i.label}>
-            <Link to={i.to} className="hover:text-emerald-deep">{i.label}</Link>
-          </li>
-        ))}
+        {items.map((i) => {
+          const [path, qs] = i.to.split("?");
+          const search = qs
+            ? Object.fromEntries(new URLSearchParams(qs).entries())
+            : undefined;
+          return (
+            <li key={i.label}>
+              <Link to={path as any} search={search as any} className="hover:text-emerald-deep">{i.label}</Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

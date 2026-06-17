@@ -181,7 +181,7 @@ function Home() {
           {featured.length === 0 ? (
             <div className="mt-8 rounded-2xl border-2 border-dashed border-emerald-deep/15 bg-surface p-10 text-center">
               <p className="text-sm text-emerald-deep/65">No vendors yet. Be the first to list your business.</p>
-              <Link to="/dashboard" className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-deep px-4 py-2 text-sm font-semibold text-cream hover:bg-emerald">
+              <Link to="/auth" search={{ intent: "vendor" } as any} className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-deep px-4 py-2 text-sm font-semibold text-cream hover:bg-emerald">
                 Become a vendor <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -209,7 +209,7 @@ function Home() {
           <Panel
             title="For vendors"
             color="gold"
-            cta={{ label: "Start selling", to: "/dashboard" }}
+            cta={{ label: "Start selling", to: "/auth", search: { intent: "vendor" } }}
             steps={[
               { icon: Store, t: "Create your storefront", b: "List your business, items and price range in under three minutes." },
               { icon: BarChart3, t: "Get demand forecasts", b: "AI-projected customer counts and peak hours, trained on RCCG patterns." },
@@ -233,7 +233,7 @@ function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-emerald-deep hover:opacity-90">
+              <Link to="/auth" search={{ intent: "vendor" } as any} className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-emerald-deep hover:opacity-90">
                 Open vendor portal <ArrowRight className="h-4 w-4" />
               </Link>
               <Link to="/discover" className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-6 py-3 text-sm font-semibold text-cream hover:bg-cream/10">
@@ -301,7 +301,7 @@ function VendorCard({ v }: { v: V }) {
 function Panel({ title, color, steps, cta }: {
   title: string; color: "emerald" | "gold";
   steps: { icon: any; t: string; b: string }[];
-  cta: { label: string; to: string };
+  cta: { label: string; to: string; search?: Record<string, string> };
 }) {
   return (
     <div className="rounded-3xl border border-emerald-deep/10 bg-surface p-8 shadow-card">
@@ -326,7 +326,8 @@ function Panel({ title, color, steps, cta }: {
         ))}
       </ul>
       <Link
-        to={cta.to}
+        to={cta.to as any}
+        search={cta.search as any}
         className="mt-8 inline-flex items-center gap-2 rounded-full bg-emerald-deep px-5 py-2.5 text-sm font-semibold text-cream hover:bg-emerald"
       >
         {cta.label} <ArrowRight className="h-4 w-4" />
