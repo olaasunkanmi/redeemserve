@@ -74,6 +74,12 @@ function VendorPage() {
   if (loading) return <SiteLayout><div className="mx-auto max-w-[1400px] px-8 py-24 text-emerald-deep/60">Loading vendor…</div></SiteLayout>;
   if (!v) return <SiteLayout><div className="mx-auto max-w-[1400px] px-8 py-24 text-emerald-deep">Vendor not found.</div></SiteLayout>;
 
+  const status = STATUS_META[(v.status === "closed" ? "sold-out" : v.status) as keyof typeof STATUS_META];
+  const items: string[] = v.popular_items || [];
+  const priceMatch = (v.price_range || "").match(/(\d[\d,]*)/g);
+  const basePrice = priceMatch ? parseInt(priceMatch[0].replace(/,/g, ""), 10) : 1000;
+  const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : Number(v.rating).toFixed(1);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -87,12 +93,6 @@ function VendorPage() {
   };
 
 
-  const status = STATUS_META[(v.status === "closed" ? "sold-out" : v.status) as keyof typeof STATUS_META];
-  const items: string[] = v.popular_items || [];
-  // Derive item prices roughly from price_range
-  const priceMatch = (v.price_range || "").match(/(\d[\d,]*)/g);
-  const basePrice = priceMatch ? parseInt(priceMatch[0].replace(/,/g, ""), 10) : 1000;
-  const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : Number(v.rating).toFixed(1);
 
   return (
     <SiteLayout>
