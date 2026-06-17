@@ -22,14 +22,36 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
+    // Pre-fill referral code from ?ref= and remember across redirects
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      const ref = url.searchParams.get("ref");
+      if (ref) {
+        setReferralCode(ref.toUpperCase());
+        try { sessionStorage.setItem("rs_ref", ref.toUpperCase()); } catch {}
+        setMode("signup");
+      } else {
+        try { const saved = sessionStorage.getItem("rs_ref"); if (saved) setReferralCode(saved); } catch {}
+      }
+    }
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/dashboard" });
     });
   }, [navigate]);
+
+  async function redeemIfAny() {
+    const code = referralCode.trim();
+    if (!code) return;
+    try {
+      await supabase.rpc("redeem_referral_code" as any, { _code: code });
+      try { sessionStorage.removeItem("rs_ref"); } catch {}
+    } catch { /* non-fatal */ }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,9 +68,11 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        await redeemIfAny();
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        await redeemIfAny();
       }
       navigate({ to: "/dashboard" });
     } catch (e: any) {
@@ -57,6 +81,7 @@ function AuthPage() {
       setLoading(false);
     }
   }
+
 
   async function google() {
     setErr(null);
@@ -125,6 +150,10 @@ function AuthPage() {
               <Input label="Email" type="email" value={email} onChange={setEmail} required placeholder="you@example.com" />
               <Input label="Password" type="password" value={password} onChange={setPassword} required placeholder="At least 8 characters" />
 
+              {mode === "signup" && (
+                <Input label="Referral code (optional)" value={referralCode} onChange={(v) => setReferralCode(v.toUpperCase())} placeholder="e.g. AB12CD" />
+              )}
+
               {err && <p className="text-sm text-rose-600">{err}</p>}
 
               <button
@@ -135,6 +164,7 @@ function AuthPage() {
                 <ArrowUpRight className="h-4 w-4" />
               </button>
             </form>
+
 
             <p className="mt-6 text-center text-sm text-emerald-deep/65">
               {mode === "signup" ? "Already have an account?" : "New here?"}{" "}
