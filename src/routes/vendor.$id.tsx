@@ -74,6 +74,19 @@ function VendorPage() {
   if (loading) return <SiteLayout><div className="mx-auto max-w-[1400px] px-8 py-24 text-emerald-deep/60">Loading vendor…</div></SiteLayout>;
   if (!v) return <SiteLayout><div className="mx-auto max-w-[1400px] px-8 py-24 text-emerald-deep">Vendor not found.</div></SiteLayout>;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: v.business_name,
+    description: v.description,
+    image: v.image_url || undefined,
+    telephone: v.phone || undefined,
+    address: { "@type": "PostalAddress", addressLocality: `Zone ${v.zone}`, addressRegion: "Ogun", addressCountry: "NG" },
+    priceRange: v.price_range || "₦₦",
+    aggregateRating: reviews.length ? { "@type": "AggregateRating", ratingValue: Number(avgRating), reviewCount: reviews.length } : undefined,
+  };
+
+
   const status = STATUS_META[(v.status === "closed" ? "sold-out" : v.status) as keyof typeof STATUS_META];
   const items: string[] = v.popular_items || [];
   // Derive item prices roughly from price_range
