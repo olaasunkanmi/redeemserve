@@ -82,7 +82,7 @@ export function Navbar() {
               to="/auth"
               className="inline-flex h-9 items-center rounded-full bg-emerald-deep px-4 text-sm font-semibold text-cream hover:bg-emerald"
             >
-              Sign in
+              {t("nav.signin")}
             </Link>
           )}
           <button
