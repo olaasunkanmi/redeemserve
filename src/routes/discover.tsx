@@ -63,6 +63,7 @@ function Discover() {
           opensAt: d.opens_at,
           featured: d.featured_until && new Date(d.featured_until).getTime() > now,
           plan: d.plan as "free" | "pro" | "premium",
+          lat: d.lat, lng: d.lng, business_name: d.business_name,
         } as any));
         mapped.sort((a: any, b: any) => Number(b.featured) - Number(a.featured));
         setVendors(mapped);
