@@ -161,11 +161,26 @@ function VendorForm({ existing, ownerId, onDone }: { existing: VendorRow | null;
     opens_at: existing?.opens_at ?? "6:00 AM",
     status: existing?.status ?? "live",
   });
+  const [step, setStep] = useState(existing ? 4 : 1);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
+  const STEPS = [
+    { n: 1, label: "Basics", hint: "Name, category, zone" },
+    { n: 2, label: "Offer", hint: "What you sell" },
+    { n: 3, label: "Logistics", hint: "Capacity & pricing" },
+    { n: 4, label: "Contact", hint: "Phone, hours, publish" },
+  ];
+
+  function stepValid(s: number) {
+    if (s === 1) return f.business_name.trim() && f.category && f.zone;
+    if (s === 2) return f.description.trim().length >= 10;
+    if (s === 3) return parseInt(f.capacity || "0", 10) > 0;
+    if (s === 4) return f.phone.trim();
+    return true;
+  }
+
+  async function save() {
     setErr(null); setSaving(true);
     const payload = {
       owner_id: ownerId,
@@ -183,73 +198,113 @@ function VendorForm({ existing, ownerId, onDone }: { existing: VendorRow | null;
     if (error) setErr(error.message); else onDone();
   }
 
+  function next(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!stepValid(step)) { setErr("Please complete this step before continuing."); return; }
+    setErr(null);
+    if (step < 4) setStep(step + 1); else save();
+  }
+
   return (
     <section className="mx-auto grid max-w-[1400px] gap-10 px-4 py-12 sm:px-8 lg:grid-cols-3">
-      <form onSubmit={save} className="lg:col-span-2 rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
+      <form onSubmit={next} className="lg:col-span-2 rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
         <h2 className="font-display text-2xl font-extrabold text-emerald-deep">
           {existing ? "Edit your storefront" : "Create your storefront"}
         </h2>
-        <p className="mt-1 text-sm text-emerald-deep/65">All fields can be updated later.</p>
+        <p className="mt-1 text-sm text-emerald-deep/65">Step {step} of 4 — {STEPS[step - 1].hint}</p>
+
+        {/* Stepper */}
+        <ol className="mt-6 flex items-center gap-2">
+          {STEPS.map((s) => (
+            <li key={s.n} className="flex-1">
+              <button type="button" onClick={() => setStep(s.n)} className="group block w-full text-left">
+                <div className={`h-1.5 rounded-full ${step >= s.n ? "bg-emerald-deep" : "bg-emerald-deep/15"}`} />
+                <p className={`mt-1.5 text-[11px] font-semibold ${step >= s.n ? "text-emerald-deep" : "text-emerald-deep/40"}`}>{s.n}. {s.label}</p>
+              </button>
+            </li>
+          ))}
+        </ol>
 
         <div className="mt-8 grid gap-5">
-          <Field label="Business name" required>
-            <input required value={f.business_name} onChange={(e) => setF({ ...f, business_name: e.target.value })} className="ed-input" placeholder="e.g. Mama Ngozi's Jollof Kitchen" />
-          </Field>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Category" required>
-              <select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })} className="ed-input">
-                {VENDOR_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </Field>
-            <Field label="Zone" required>
-              <select value={f.zone} onChange={(e) => setF({ ...f, zone: e.target.value })} className="ed-input">
-                {ZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
-              </select>
-            </Field>
-          </div>
-          <Field label="What you offer" required>
-            <textarea required rows={3} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className="ed-input resize-none" placeholder="A short line attendees will read on your card…" />
-          </Field>
-          <Field label="Popular items (comma-separated)">
-            <input value={f.popular} onChange={(e) => setF({ ...f, popular: e.target.value })} className="ed-input" placeholder="Jollof Rice, Plantain, Grilled Chicken" />
-          </Field>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Daily capacity" required>
-              <input required type="number" min="1" value={f.capacity} onChange={(e) => setF({ ...f, capacity: e.target.value })} className="ed-input" placeholder="500" />
-            </Field>
-            <Field label="Price range">
-              <input value={f.price_range} onChange={(e) => setF({ ...f, price_range: e.target.value })} className="ed-input" placeholder="₦500 – ₦3,500" />
-            </Field>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Phone" required>
-              <input required type="tel" value={f.phone ?? ""} onChange={(e) => setF({ ...f, phone: e.target.value })} className="ed-input" placeholder="+234…" />
-            </Field>
-            <Field label="WhatsApp (optional)">
-              <input value={f.whatsapp ?? ""} onChange={(e) => setF({ ...f, whatsapp: e.target.value })} className="ed-input" placeholder="+234…" />
-            </Field>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Opens at">
-              <input value={f.opens_at} onChange={(e) => setF({ ...f, opens_at: e.target.value })} className="ed-input" placeholder="6:00 AM" />
-            </Field>
-            <Field label="Status">
-              <select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value as any })} className="ed-input">
-                <option value="live">Open now</option>
-                <option value="low-stock">Low stock</option>
-                <option value="sold-out">Sold out</option>
-                <option value="closed">Closed</option>
-              </select>
-            </Field>
-          </div>
+          {step === 1 && (
+            <>
+              <Field label="Business name" required>
+                <input required value={f.business_name} onChange={(e) => setF({ ...f, business_name: e.target.value })} className="ed-input" placeholder="e.g. Mama Ngozi's Jollof Kitchen" />
+              </Field>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label="Category" required>
+                  <select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })} className="ed-input">
+                    {VENDOR_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </Field>
+                <Field label="Zone" required>
+                  <select value={f.zone} onChange={(e) => setF({ ...f, zone: e.target.value })} className="ed-input">
+                    {ZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
+                  </select>
+                </Field>
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <Field label="What you offer" required>
+                <textarea required rows={4} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className="ed-input resize-none" placeholder="A short line attendees will read on your card…" />
+              </Field>
+              <Field label="Popular items (comma-separated)">
+                <input value={f.popular} onChange={(e) => setF({ ...f, popular: e.target.value })} className="ed-input" placeholder="Jollof Rice, Plantain, Grilled Chicken" />
+              </Field>
+            </>
+          )}
+
+          {step === 3 && (
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Daily capacity" required>
+                <input required type="number" min="1" value={f.capacity} onChange={(e) => setF({ ...f, capacity: e.target.value })} className="ed-input" placeholder="500" />
+              </Field>
+              <Field label="Price range">
+                <input value={f.price_range} onChange={(e) => setF({ ...f, price_range: e.target.value })} className="ed-input" placeholder="₦500 – ₦3,500" />
+              </Field>
+            </div>
+          )}
+
+          {step === 4 && (
+            <>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label="Phone" required>
+                  <input required type="tel" value={f.phone ?? ""} onChange={(e) => setF({ ...f, phone: e.target.value })} className="ed-input" placeholder="+234…" />
+                </Field>
+                <Field label="WhatsApp (optional)">
+                  <input value={f.whatsapp ?? ""} onChange={(e) => setF({ ...f, whatsapp: e.target.value })} className="ed-input" placeholder="+234…" />
+                </Field>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label="Opens at">
+                  <input value={f.opens_at} onChange={(e) => setF({ ...f, opens_at: e.target.value })} className="ed-input" placeholder="6:00 AM" />
+                </Field>
+                <Field label="Status">
+                  <select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value as any })} className="ed-input">
+                    <option value="live">Open now</option>
+                    <option value="low-stock">Low stock</option>
+                    <option value="sold-out">Sold out</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </Field>
+              </div>
+            </>
+          )}
         </div>
 
         {err && <p className="mt-5 text-sm text-rose-600">{err}</p>}
 
         <div className="mt-8 flex items-center justify-between gap-4 border-t border-emerald-deep/10 pt-6">
-          <p className="text-xs text-emerald-deep/55">By publishing you agree to the RedeemServe vendor terms.</p>
+          {step > 1 ? (
+            <button type="button" onClick={() => setStep(step - 1)} className="inline-flex items-center gap-2 rounded-full border border-emerald-deep/20 px-5 py-3 text-sm font-semibold text-emerald-deep hover:bg-emerald-soft">
+              Back
+            </button>
+          ) : <span className="text-xs text-emerald-deep/55">By publishing you agree to the RedeemServe vendor terms.</span>}
           <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-emerald-deep px-6 py-3 text-sm font-semibold text-cream hover:bg-emerald disabled:opacity-50">
-            {saving ? "Saving…" : existing ? "Save changes" : "Publish storefront"} <ArrowRight className="h-4 w-4" />
+            {step < 4 ? "Continue" : saving ? "Saving…" : existing ? "Save changes" : "Publish storefront"} <ArrowRight className="h-4 w-4" />
           </button>
         </div>
 
@@ -284,6 +339,7 @@ function VendorForm({ existing, ownerId, onDone }: { existing: VendorRow | null;
     </section>
   );
 }
+
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
