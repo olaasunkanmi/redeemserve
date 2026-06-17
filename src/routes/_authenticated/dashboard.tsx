@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { VENDOR_CATEGORIES, ZONES, STATUS_META } from "@/lib/vendors";
-import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star } from "lucide-react";
+import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star, Sparkles, Zap, Crown, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Vendor dashboard — RedeemServe" }] }),
@@ -73,6 +73,7 @@ function Dashboard() {
       ) : (
         <>
           <VendorOrdersPanel vendorId={vendor.id} />
+          <RevenuePanel vendor={vendor as any} onChange={load} />
           <VendorDashboard vendor={vendor} onEdit={() => setEditing(true)} onDelete={async () => {
             if (!confirm("Delete this vendor listing?")) return;
             await supabase.from("vendors").delete().eq("id", vendor.id);
@@ -426,5 +427,103 @@ function HourlyChart({ values }: { values: number[] }) {
         );
       })}
     </div>
+  );
+}
+
+function RevenuePanel({ vendor, onChange }: { vendor: any; onChange: () => void }) {
+  const [stats, setStats] = useState({ gross: 0, payout: 0, commission: 0, count: 0 });
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function load() {
+    const { data } = await supabase.from("orders" as any)
+      .select("subtotal_naira,commission_naira,vendor_payout_naira,status")
+      .eq("vendor_id", vendor.id)
+      .neq("status", "cancelled");
+    const rows = (data as any[]) ?? [];
+    setStats({
+      gross: rows.reduce((s, r) => s + Number(r.subtotal_naira || 0), 0),
+      payout: rows.reduce((s, r) => s + Number(r.vendor_payout_naira || 0), 0),
+      commission: rows.reduce((s, r) => s + Number(r.commission_naira || 0), 0),
+      count: rows.length,
+    });
+  }
+  useEffect(() => { load(); }, [vendor.id]);
+
+  async function upgrade(plan: "free" | "pro" | "premium") {
+    setBusy(plan);
+    await supabase.from("vendors").update({
+      plan,
+      plan_renews_at: plan === "free" ? null : new Date(Date.now() + 30 * 864e5).toISOString(),
+    }).eq("id", vendor.id);
+    setBusy(null);
+    onChange();
+  }
+  async function boost() {
+    setBusy("boost");
+    await supabase.from("vendors").update({
+      featured_until: new Date(Date.now() + 7 * 864e5).toISOString(),
+    }).eq("id", vendor.id);
+    setBusy(null);
+    onChange();
+  }
+
+  const plan = vendor.plan ?? "free";
+  const rate = plan === "premium" ? 3 : plan === "pro" ? 6 : 9;
+  const featured = vendor.featured_until && new Date(vendor.featured_until).getTime() > Date.now();
+
+  return (
+    <section className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-8">
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+        <div className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-xl font-extrabold text-emerald-deep inline-flex items-center gap-2"><Wallet className="h-5 w-5"/> Earnings</h2>
+              <p className="text-xs text-emerald-deep/60">Commission rate on your plan: <strong>{rate}%</strong></p>
+            </div>
+            <span className="rounded-full bg-emerald-soft px-3 py-1 text-[11px] font-semibold uppercase text-emerald-deep">{stats.count} orders</span>
+          </div>
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <Stat label="Gross sales" value={`₦${stats.gross.toLocaleString()}`}/>
+            <Stat label="Platform fee" value={`₦${stats.commission.toLocaleString()}`} tone="gold"/>
+            <Stat label="Your payout" value={`₦${stats.payout.toLocaleString()}`}/>
+          </div>
+          <p className="mt-4 text-[11px] text-emerald-deep/55">Platform fees fund payment processing, the AI concierge, vendor support and infrastructure. Payouts settle every Friday.</p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-deep/10 bg-emerald-deep p-6 text-cream shadow-card sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gold">Grow with RedeemServe</p>
+          <h3 className="mt-2 font-display text-lg font-bold">Plan & promotion</h3>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {([
+              { id: "free", label: "Free", price: "₦0", rate: "9%", icon: Sparkles },
+              { id: "pro", label: "Pro", price: "₦5k/mo", rate: "6%", icon: Zap },
+              { id: "premium", label: "Premium", price: "₦15k/mo", rate: "3%", icon: Crown },
+            ] as const).map((p) => (
+              <button key={p.id} disabled={busy===p.id} onClick={() => upgrade(p.id)}
+                className={`rounded-xl border p-3 text-left transition ${plan===p.id ? "border-gold bg-gold/15" : "border-cream/20 hover:border-cream/50"}`}>
+                <p.icon className="h-4 w-4 text-gold"/>
+                <p className="mt-2 text-sm font-bold">{p.label}</p>
+                <p className="text-[11px] text-cream/70">{p.price}</p>
+                <p className="mt-1 text-[11px] font-semibold text-gold">{p.rate} fee</p>
+                {plan===p.id && <p className="mt-1 text-[10px] uppercase tracking-wider text-gold">Current</p>}
+              </button>
+            ))}
+          </div>
+          <div className="mt-5 rounded-xl border border-cream/15 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-gold uppercase tracking-wider">Featured slot</p>
+                <p className="mt-1 text-sm">Top of Discover & homepage for 7 days · <strong>₦3,000</strong></p>
+              </div>
+              <button disabled={busy==="boost"} onClick={boost}
+                className="rounded-full bg-gold px-4 py-2 text-xs font-bold text-emerald-deep hover:brightness-95 disabled:opacity-50">
+                {featured ? "Renew" : "Boost"}
+              </button>
+            </div>
+            {featured && <p className="mt-2 text-[11px] text-cream/70">Featured until {new Date(vendor.featured_until).toLocaleDateString()}</p>}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

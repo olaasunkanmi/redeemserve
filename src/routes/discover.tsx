@@ -49,7 +49,8 @@ function Discover() {
       .order("created_at", { ascending: false })
       .then(({ data }) => {
         if (!data) return;
-        setVendors(data.map((d: any) => ({
+        const now = Date.now();
+        const mapped = data.map((d: any) => ({
           id: d.id, name: d.business_name, category: d.category as VendorCategory,
           description: d.description, location: d.location || `Zone ${d.zone}`,
           zone: d.zone as Vendor["zone"], x: d.pos_x, y: d.pos_y,
@@ -58,7 +59,11 @@ function Discover() {
           priceRange: d.price_range,
           forecast: { demand: (d.demand as any) || "Medium", expectedCustomers: d.expected_customers },
           opensAt: d.opens_at,
-        })));
+          featured: d.featured_until && new Date(d.featured_until).getTime() > now,
+          plan: d.plan as "free" | "pro" | "premium",
+        } as any));
+        mapped.sort((a: any, b: any) => Number(b.featured) - Number(a.featured));
+        setVendors(mapped);
       });
   }, []);
 
@@ -165,15 +170,18 @@ function StatusPill({ status }: { status: Vendor["status"] }) {
   );
 }
 
-function VendorCard({ v, onOpen }: { v: Vendor; onOpen: () => void }) {
+function VendorCard({ v, onOpen }: { v: Vendor & { featured?: boolean }; onOpen: () => void }) {
   const Icon = CATEGORY_ICONS[v.category] ?? Store;
   return (
-    <button onClick={onOpen} className="group rounded-2xl border border-emerald-deep/10 bg-surface p-5 text-left shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover">
+    <button onClick={onOpen} className={`group rounded-2xl border bg-surface p-5 text-left shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover ${v.featured ? "border-gold ring-2 ring-gold/30" : "border-emerald-deep/10"}`}>
       <div className="flex items-start justify-between gap-3">
         <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-soft text-emerald-deep">
           <Icon className="h-5 w-5" />
         </span>
-        <StatusPill status={v.status} />
+        <div className="flex flex-col items-end gap-1">
+          {v.featured && <span className="rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-deep">★ Featured</span>}
+          <StatusPill status={v.status} />
+        </div>
       </div>
       <h3 className="mt-4 font-display text-lg font-bold text-emerald-deep group-hover:text-emerald">{v.name}</h3>
       <p className="mt-1 line-clamp-2 text-sm text-emerald-deep/65">{v.description}</p>
