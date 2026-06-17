@@ -61,7 +61,7 @@ function Home() {
           <img
             src={cityAsset.url}
             alt="Aerial view of Redemption City"
-            className="h-full w-full object-cover object-center opacity-85"
+            className="h-full w-full object-cover object-center opacity-65"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-deep/80 via-emerald-deep/50 to-emerald-deep/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-emerald-deep/90 via-transparent to-emerald-deep/20" />
