@@ -599,73 +599,276 @@ function RevenuePanel({ vendor, onChange }: { vendor: any; onChange: () => void 
   );
 }
 
+// ───────── Fiverr-style KYC flow ─────────
+const KYC_ID_TYPES = [
+  { id: "nin",      label: "NIN (National Identity Number)", needsBack: false, idPattern: /^\d{11}$/, idHint: "11 digits" },
+  { id: "bvn",      label: "BVN (Bank Verification Number)", needsBack: false, idPattern: /^\d{11}$/, idHint: "11 digits" },
+  { id: "drivers",  label: "Driver's Licence",               needsBack: true,  idPattern: /^[A-Z]{3}\d{5}[A-Z]{2}\d$/i, idHint: "e.g. ABC12345DE1" },
+  { id: "passport", label: "International Passport",         needsBack: false, idPattern: /^[A-Z]\d{8}$/i, idHint: "1 letter + 8 digits" },
+  { id: "voters",   label: "Voter's Card (PVC)",             needsBack: true,  idPattern: /^[A-Z0-9]{8,20}$/i, idHint: "8–20 letters/digits" },
+  { id: "cac",      label: "CAC Certificate (Business)",     needsBack: false, idPattern: /^(RC|BN)\s?\d{3,8}$/i, idHint: "e.g. RC1234567 or BN123456" },
+] as const;
+
 function KycPanel({ vendor, onChange }: { vendor: any; onChange: () => void }) {
-  const [uploading, setUploading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      if (!vendor.kyc_doc_path) { setPreviewUrl(null); return; }
-      const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(vendor.kyc_doc_path, 600);
-      if (active) setPreviewUrl(data?.signedUrl ?? null);
-    })();
-    return () => { active = false; };
-  }, [vendor.kyc_doc_path]);
-
-  async function upload(file: File) {
-    setErr(null); setUploading(true);
-    try {
-      const ext = file.name.split(".").pop() || "pdf";
-      const path = `${vendor.id}/id-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("kyc-documents")
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      const { error: dbErr } = await supabase.from("vendors").update({
-        kyc_doc_path: path, kyc_status: "pending", kyc_submitted_at: new Date().toISOString(),
-      } as any).eq("id", vendor.id);
-      if (dbErr) throw dbErr;
-      onChange();
-    } catch (e: any) { setErr(e.message); }
-    finally { setUploading(false); }
-  }
-
   const status = vendor.kyc_status || "unsubmitted";
+  const submitted = status !== "unsubmitted";
+  const [open, setOpen] = useState(!submitted);
+  const [step, setStep] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const initialType = vendor.kyc_type || "nin";
+  const [form, setForm] = useState({
+    type: initialType as string,
+    full_name: vendor.kyc_full_name || "",
+    id_number: vendor.kyc_id_number || "",
+    dob: vendor.kyc_dob || "",
+    address: vendor.kyc_address || "",
+  });
+  const [frontFile, setFrontFile] = useState<File | null>(null);
+  const [backFile, setBackFile] = useState<File | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+
+  const typeDef = KYC_ID_TYPES.find((t) => t.id === form.type) ?? KYC_ID_TYPES[0];
+
   const badge = ({
     unsubmitted: { txt: "Not submitted", cls: "bg-emerald-deep/10 text-emerald-deep/70" },
     pending:     { txt: "Pending review", cls: "bg-amber-100 text-amber-800" },
     approved:    { txt: "Approved ✓", cls: "bg-emerald-soft text-emerald-deep" },
-    rejected:    { txt: "Rejected", cls: "bg-rose-100 text-rose-700" },
+    rejected:    { txt: "Action required", cls: "bg-rose-100 text-rose-700" },
   } as any)[status] ?? { txt: status, cls: "bg-emerald-deep/10" };
+
+  async function uploadOne(file: File, slot: "front" | "back" | "selfie") {
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${vendor.id}/${slot}-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("kyc-documents")
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) throw upErr;
+    return path;
+  }
+
+  function validateStep(s: number): string | null {
+    if (s === 1) return form.type ? null : "Choose an ID type to continue.";
+    if (s === 2) {
+      if (!form.full_name.trim()) return "Enter the full name on your ID.";
+      if (!form.id_number.trim()) return "Enter the ID number.";
+      if (!typeDef.idPattern.test(form.id_number.trim())) return `Invalid ${typeDef.label} format (${typeDef.idHint}).`;
+      if (form.type !== "cac" && !form.dob) return "Enter your date of birth.";
+      if (!form.address.trim() || form.address.trim().length < 8) return "Enter your residential / business address.";
+      return null;
+    }
+    if (s === 3) {
+      if (!frontFile && !vendor.kyc_doc_path) return "Upload the front of your ID.";
+      if (typeDef.needsBack && !backFile && !vendor.kyc_doc_back_path) return "Upload the back of your ID.";
+      return null;
+    }
+    if (s === 4) {
+      if (!selfieFile && !vendor.kyc_selfie_path) return "Upload a selfie holding your ID.";
+      return null;
+    }
+    return null;
+  }
+
+  async function submit() {
+    setErr(null); setBusy(true);
+    try {
+      const updates: any = {
+        kyc_type: form.type,
+        kyc_full_name: form.full_name.trim(),
+        kyc_id_number: form.id_number.trim().toUpperCase(),
+        kyc_dob: form.dob || null,
+        kyc_address: form.address.trim(),
+        kyc_status: "pending",
+        kyc_submitted_at: new Date().toISOString(),
+        kyc_notes: null,
+      };
+      if (frontFile)  updates.kyc_doc_path      = await uploadOne(frontFile,  "front");
+      if (backFile)   updates.kyc_doc_back_path = await uploadOne(backFile,   "back");
+      if (selfieFile) updates.kyc_selfie_path   = await uploadOne(selfieFile, "selfie");
+      const { error: dbErr } = await supabase.from("vendors").update(updates).eq("id", vendor.id);
+      if (dbErr) throw dbErr;
+      setStep(5);
+      onChange();
+    } catch (e: any) { setErr(e.message || "Upload failed"); }
+    finally { setBusy(false); }
+  }
+
+  const STEPS = [
+    { n: 1, label: "ID type",  icon: IdCard },
+    { n: 2, label: "Details",  icon: FileText },
+    { n: 3, label: "Document", icon: Upload },
+    { n: 4, label: "Selfie",   icon: Camera },
+  ];
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-8">
       <div className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-xl font-extrabold text-emerald-deep">Identity verification (KYC)</h2>
-            <p className="text-xs text-emerald-deep/60">Upload a Government ID, CAC certificate, or utility bill. Approved vendors get a verified badge & priority listing.</p>
+            <h2 className="font-display text-xl font-extrabold text-emerald-deep inline-flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5"/> Identity verification (KYC)
+            </h2>
+            <p className="text-xs text-emerald-deep/60">A 4-step check (ID type → details → document → selfie). Approved vendors get a verified badge, priority listing & higher payout limits.</p>
           </div>
-          <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase ${badge.cls}`}>{badge.txt}</span>
+          <div className="flex items-center gap-2">
+            <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase ${badge.cls}`}>{badge.txt}</span>
+            {submitted && (
+              <button onClick={() => { setOpen((v) => !v); setStep(1); }} className="rounded-full border border-emerald-deep/20 px-3 py-1 text-[11px] font-semibold text-emerald-deep hover:bg-emerald-soft">
+                {open ? "Close" : status === "rejected" ? "Re-submit" : "Update"}
+              </button>
+            )}
+          </div>
         </div>
+
         {vendor.kyc_notes && status === "rejected" && (
           <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">Reviewer note: {vendor.kyc_notes}</p>
         )}
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-emerald-deep px-4 py-2 text-xs font-semibold text-cream hover:bg-emerald">
-            {uploading ? "Uploading…" : vendor.kyc_doc_path ? "Replace document" : "Upload document"}
-            <input type="file" accept="image/*,application/pdf" className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }} disabled={uploading} />
-          </label>
-          {previewUrl && (
-            <a href={previewUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-emerald-deep underline">
-              View current document
-            </a>
-          )}
-        </div>
-        {err && <p className="mt-2 text-xs text-rose-600">{err}</p>}
+
+        {open && (
+          <>
+            {/* Stepper */}
+            <ol className="mt-6 grid grid-cols-4 gap-2">
+              {STEPS.map((s) => {
+                const Icon = s.icon;
+                const active = step === s.n;
+                const done = step > s.n;
+                return (
+                  <li key={s.n} className={`rounded-xl border p-3 text-left transition ${active ? "border-emerald-deep bg-emerald-soft/50" : done ? "border-emerald/40 bg-emerald-soft/20" : "border-emerald-deep/10"}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${active || done ? "bg-emerald-deep text-cream" : "bg-emerald-deep/10 text-emerald-deep/60"}`}>
+                        {done ? <CheckCircle2 className="h-4 w-4"/> : <Icon className="h-3.5 w-3.5"/>}
+                      </span>
+                      <span className={`text-[11px] font-semibold ${active || done ? "text-emerald-deep" : "text-emerald-deep/55"}`}>{s.n}. {s.label}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <div className="mt-6">
+              {step === 1 && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {KYC_ID_TYPES.map((t) => (
+                    <button key={t.id} type="button" onClick={() => setForm({ ...form, type: t.id, id_number: "" })}
+                      className={`rounded-xl border p-4 text-left transition ${form.type === t.id ? "border-emerald-deep bg-emerald-soft/40" : "border-emerald-deep/15 hover:border-emerald-deep/40"}`}>
+                      <p className="text-sm font-semibold text-emerald-deep">{t.label}</p>
+                      <p className="mt-1 text-[11px] text-emerald-deep/60">Format: {t.idHint}{t.needsBack ? " · front & back required" : ""}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="grid gap-5">
+                  <Field label="Full legal name (as on ID)" required>
+                    <input className="ed-input" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="e.g. Adekunle Janet Olamide"/>
+                  </Field>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <Field label={`${typeDef.label} number`} required>
+                      <input className="ed-input" value={form.id_number} onChange={(e) => setForm({ ...form, id_number: e.target.value })} placeholder={typeDef.idHint}/>
+                      <p className="mt-1 text-[11px] text-emerald-deep/55">Expected: {typeDef.idHint}</p>
+                    </Field>
+                    {form.type !== "cac" && (
+                      <Field label="Date of birth" required>
+                        <input type="date" className="ed-input" value={form.dob} onChange={(e) => setForm({ ...form, dob: e.target.value })} max={new Date().toISOString().slice(0,10)}/>
+                      </Field>
+                    )}
+                  </div>
+                  <Field label="Residential / business address" required>
+                    <textarea rows={2} className="ed-input resize-none" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="House/street, city, state"/>
+                  </Field>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FileSlot label={`Front of ${typeDef.label}`} file={frontFile} existing={!!vendor.kyc_doc_path} onPick={setFrontFile}/>
+                  {typeDef.needsBack && (
+                    <FileSlot label={`Back of ${typeDef.label}`} file={backFile} existing={!!vendor.kyc_doc_back_path} onPick={setBackFile}/>
+                  )}
+                  <p className="sm:col-span-2 text-[11px] text-emerald-deep/55">Use a clear, well-lit photo. JPG, PNG or PDF · max 10 MB. All four corners must be visible and no glare.</p>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FileSlot label="Selfie holding your ID" file={selfieFile} existing={!!vendor.kyc_selfie_path} onPick={setSelfieFile} accept="image/*" capture/>
+                  <div className="rounded-xl bg-emerald-soft/40 p-4 text-xs text-emerald-deep/75">
+                    <p className="font-semibold text-emerald-deep">How to take it</p>
+                    <ul className="mt-2 space-y-1 list-disc pl-4">
+                      <li>Hold the same ID next to your face.</li>
+                      <li>Your face and the ID details must both be readable.</li>
+                      <li>Good lighting · no filters, hats, or sunglasses.</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {step === 5 && (
+                <div className="rounded-xl bg-emerald-soft/40 p-6 text-center">
+                  <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-deep"/>
+                  <p className="mt-3 font-display text-lg font-bold text-emerald-deep">Submitted for review</p>
+                  <p className="mt-1 text-xs text-emerald-deep/70">Our team typically reviews KYC within 24 hours. You'll get an email when it's approved.</p>
+                </div>
+              )}
+            </div>
+
+            {err && <p className="mt-4 text-sm text-rose-600">{err}</p>}
+
+            {step < 5 && (
+              <div className="mt-6 flex items-center justify-between gap-3 border-t border-emerald-deep/10 pt-5">
+                {step > 1 ? (
+                  <button onClick={() => { setErr(null); setStep(step - 1); }} className="rounded-full border border-emerald-deep/20 px-5 py-2 text-xs font-semibold text-emerald-deep hover:bg-emerald-soft">Back</button>
+                ) : <span className="text-[11px] text-emerald-deep/55">Your information is encrypted & only used for verification.</span>}
+                <button
+                  disabled={busy}
+                  onClick={() => {
+                    const msg = validateStep(step);
+                    if (msg) { setErr(msg); return; }
+                    setErr(null);
+                    if (step < 4) setStep(step + 1); else submit();
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full bg-emerald-deep px-5 py-2 text-xs font-semibold text-cream hover:bg-emerald disabled:opacity-50">
+                  {busy ? "Submitting…" : step < 4 ? "Continue" : "Submit for review"} <ArrowRight className="h-3.5 w-3.5"/>
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </section>
+  );
+}
+
+function FileSlot({ label, file, existing, onPick, accept = "image/*,application/pdf", capture }: {
+  label: string; file: File | null; existing?: boolean; onPick: (f: File) => void; accept?: string; capture?: boolean;
+}) {
+  return (
+    <label className="block cursor-pointer rounded-xl border-2 border-dashed border-emerald-deep/20 bg-cream p-4 hover:border-emerald-deep/50">
+      <p className="text-xs font-semibold text-emerald-deep">{label}</p>
+      <div className="mt-2 flex items-center gap-3">
+        <span className="grid h-12 w-12 place-items-center rounded-lg bg-emerald-soft text-emerald-deep">
+          {capture ? <Camera className="h-5 w-5"/> : <Upload className="h-5 w-5"/>}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs text-emerald-deep/80">
+            {file ? file.name : existing ? "Replace existing file…" : "Tap to upload (or take a photo)"}
+          </p>
+          <p className="text-[11px] text-emerald-deep/50">JPG · PNG · PDF · max 10 MB</p>
+        </div>
+      </div>
+      <input
+        type="file"
+        accept={accept}
+        {...(capture ? { capture: "user" as any } : {})}
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          if (f.size > 10 * 1024 * 1024) { alert("Max file size is 10 MB"); return; }
+          onPick(f);
+        }}
+      />
+    </label>
   );
 }
