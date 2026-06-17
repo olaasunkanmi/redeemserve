@@ -28,7 +28,8 @@ function Checkout() {
     setPlacing(true);
     const { data: order, error } = await supabase.from("orders" as any).insert({
       buyer_id: user.id, vendor_id: cart.vendor_id,
-      total_naira: total, buyer_name: f.name, buyer_phone: f.phone,
+      subtotal_naira: total, total_naira: total,
+      buyer_name: f.name, buyer_phone: f.phone,
       pickup_zone: f.zone, notes: f.notes,
     }).select().single();
     if (error || !order) { setErr(error?.message ?? "Failed"); setPlacing(false); return; }
