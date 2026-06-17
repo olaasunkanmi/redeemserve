@@ -299,11 +299,18 @@ export type Database = {
           expected_customers: number
           featured_until: string | null
           id: string
+          kyc_address: string | null
+          kyc_dob: string | null
+          kyc_doc_back_path: string | null
           kyc_doc_path: string | null
+          kyc_full_name: string | null
+          kyc_id_number: string | null
           kyc_notes: string | null
           kyc_reviewed_at: string | null
+          kyc_selfie_path: string | null
           kyc_status: string
           kyc_submitted_at: string | null
+          kyc_type: string | null
           lat: number | null
           lng: number | null
           location: string
@@ -333,11 +340,18 @@ export type Database = {
           expected_customers?: number
           featured_until?: string | null
           id?: string
+          kyc_address?: string | null
+          kyc_dob?: string | null
+          kyc_doc_back_path?: string | null
           kyc_doc_path?: string | null
+          kyc_full_name?: string | null
+          kyc_id_number?: string | null
           kyc_notes?: string | null
           kyc_reviewed_at?: string | null
+          kyc_selfie_path?: string | null
           kyc_status?: string
           kyc_submitted_at?: string | null
+          kyc_type?: string | null
           lat?: number | null
           lng?: number | null
           location?: string
@@ -367,11 +381,18 @@ export type Database = {
           expected_customers?: number
           featured_until?: string | null
           id?: string
+          kyc_address?: string | null
+          kyc_dob?: string | null
+          kyc_doc_back_path?: string | null
           kyc_doc_path?: string | null
+          kyc_full_name?: string | null
+          kyc_id_number?: string | null
           kyc_notes?: string | null
           kyc_reviewed_at?: string | null
+          kyc_selfie_path?: string | null
           kyc_status?: string
           kyc_submitted_at?: string | null
+          kyc_type?: string | null
           lat?: number | null
           lng?: number | null
           location?: string

@@ -36,13 +36,41 @@ function ReferralsPage() {
   const pending = referrals.filter((r) => r.status === "pending").length;
 
   async function copy() {
-    await navigator.clipboard.writeText(link);
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      // Fallback for older browsers / insecure contexts
+      const ta = document.createElement("textarea");
+      ta.value = link; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch {}
+      document.body.removeChild(ta);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
-  function share() {
-    if (navigator.share) navigator.share({ title: "Join me on RedeemServe", text: "Use my code to get ₦500 off your first order", url: link });
-    else copy();
+
+  async function share() {
+    const payload = {
+      title: "Join me on RedeemServe",
+      text: "Use my code to get ₦500 off your first order on RedeemServe.",
+      url: link,
+    };
+    // Web Share API (mobile + some desktop browsers)
+    if (typeof navigator !== "undefined" && typeof (navigator as any).share === "function") {
+      try {
+        await (navigator as any).share(payload);
+        return;
+      } catch (e: any) {
+        // User cancelled — do nothing. Any other error → fall through to fallback.
+        if (e?.name === "AbortError") return;
+      }
+    }
+    // Desktop fallback: open WhatsApp web share with the message pre-filled.
+    const msg = `${payload.text}\n${link}`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    const win = window.open(waUrl, "_blank", "noopener,noreferrer");
+    if (!win) await copy(); // popup blocked → copy as last resort
   }
 
   return (

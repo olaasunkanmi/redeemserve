@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { isValidNigerianPhone, toE164Nigerian, NG_PHONE_HINT } from "@/lib/phone";
 import { ArrowUpRight } from "lucide-react";
 import { BackButton } from "@/components/site/BackButton";
 
@@ -59,12 +60,16 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
+        if (phone && !isValidNigerianPhone(phone)) {
+          throw new Error(NG_PHONE_HINT);
+        }
+        const normalizedPhone = phone ? toE164Nigerian(phone) : "";
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: window.location.origin + "/dashboard",
-            data: { full_name: fullName, phone },
+            data: { full_name: fullName, phone: normalizedPhone },
           },
         });
         if (error) throw error;
@@ -144,7 +149,7 @@ function AuthPage() {
               {mode === "signup" && (
                 <>
                   <Input label="Full name" value={fullName} onChange={setFullName} required placeholder="Jane Adekunle" />
-                  <Input label="WhatsApp / Phone" value={phone} onChange={setPhone} placeholder="+234 …" />
+                  <Input label="WhatsApp / Phone" value={phone} onChange={setPhone} placeholder="08031234567 or +2348031234567" hint={NG_PHONE_HINT} invalid={!!phone && !isValidNigerianPhone(phone)} type="tel" />
                 </>
               )}
               <Input label="Email" type="email" value={email} onChange={setEmail} required placeholder="you@example.com" />
@@ -180,10 +185,10 @@ function AuthPage() {
 }
 
 function Input({
-  label, value, onChange, type = "text", required, placeholder,
+  label, value, onChange, type = "text", required, placeholder, hint, invalid,
 }: {
   label: string; value: string; onChange: (v: string) => void;
-  type?: string; required?: boolean; placeholder?: string;
+  type?: string; required?: boolean; placeholder?: string; hint?: string; invalid?: boolean;
 }) {
   return (
     <label className="block">
@@ -191,8 +196,9 @@ function Input({
       <input
         type={type} value={value} required={required} placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 w-full rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2.5 text-sm text-emerald-deep outline-none transition-colors focus:border-emerald focus:ring-2 focus:ring-emerald/20"
+        className={`mt-1.5 w-full rounded-lg border bg-surface px-3 py-2.5 text-sm text-emerald-deep outline-none transition-colors focus:ring-2 ${invalid ? "border-rose-400 focus:border-rose-500 focus:ring-rose-200" : "border-emerald-deep/15 focus:border-emerald focus:ring-emerald/20"}`}
       />
+      {hint && <span className={`mt-1 block text-[11px] ${invalid ? "text-rose-600" : "text-emerald-deep/55"}`}>{hint}</span>}
     </label>
   );
 }
