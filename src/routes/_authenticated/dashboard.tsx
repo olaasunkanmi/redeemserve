@@ -79,7 +79,7 @@ function Dashboard() {
           <VendorOrdersPanel vendorId={vendor.id} />
           <KycPanel vendor={vendor as any} onChange={load} />
           <RevenuePanel vendor={vendor as any} onChange={load} />
-          <VendorDashboard vendor={vendor} onEdit={() => setEditing(true)} onDelete={async () => {
+          <VendorDashboard vendor={vendor} onReload={load} onEdit={() => setEditing(true)} onDelete={async () => {
             if (!confirm("Delete this vendor listing?")) return;
             await supabase.from("vendors").delete().eq("id", vendor.id);
             load();
