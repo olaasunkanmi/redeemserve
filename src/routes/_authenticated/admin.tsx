@@ -108,9 +108,97 @@ function Admin() {
         const { data: vs } = await supabase.from("vendors").select("*").order("created_at", { ascending: false });
         setVendors(vs ?? []);
       }} />
+      <EventsManager />
     </SiteLayout>
   );
 }
+
+function EventsManager() {
+  const [events, setEvents] = useState<any[]>([]);
+  const [form, setForm] = useState({
+    name: "", description: "", starts_at: "", ends_at: "",
+    location: "Redemption City", expected_attendance: "", category: "Service", prep_tips: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function load() {
+    const { data } = await supabase.from("events" as any).select("*").order("starts_at", { ascending: true });
+    setEvents((data as any) ?? []);
+  }
+  useEffect(() => { load(); }, []);
+
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null); setSaving(true);
+    if (!form.name.trim() || !form.starts_at) {
+      setErr("Name and start date are required."); setSaving(false); return;
+    }
+    const payload: any = {
+      name: form.name.trim(),
+      description: form.description || null,
+      starts_at: new Date(form.starts_at).toISOString(),
+      ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
+      location: form.location || null,
+      expected_attendance: form.expected_attendance ? parseInt(form.expected_attendance, 10) : null,
+      category: form.category || "Service",
+      prep_tips: form.prep_tips || null,
+    };
+    const { error } = await supabase.from("events" as any).insert(payload);
+    setSaving(false);
+    if (error) { setErr(error.message); return; }
+    setForm({ name: "", description: "", starts_at: "", ends_at: "", location: "Redemption City", expected_attendance: "", category: "Service", prep_tips: "" });
+    load();
+  }
+
+  async function remove(id: string) {
+    if (!confirm("Delete this event?")) return;
+    await supabase.from("events" as any).delete().eq("id", id);
+    load();
+  }
+
+  return (
+    <section className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-8">
+      <div className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-5 w-5 text-gold" />
+          <h2 className="font-display text-xl font-extrabold text-emerald-deep">Upcoming events</h2>
+        </div>
+        <p className="text-xs text-emerald-deep/60">Vendors see these on their dashboard so they can prepare ahead.</p>
+
+        <form onSubmit={add} className="mt-6 grid gap-3 rounded-xl border border-emerald-deep/10 bg-cream p-4 sm:grid-cols-2">
+          <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Event name" className="rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-sm sm:col-span-2" />
+          <input required type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} className="rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-sm" />
+          <input type="datetime-local" value={form.ends_at} onChange={(e) => setForm({ ...form, ends_at: e.target.value })} placeholder="Ends" className="rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-sm" />
+          <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Location" className="rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-sm" />
+          <input type="number" min="0" value={form.expected_attendance} onChange={(e) => setForm({ ...form, expected_attendance: e.target.value })} placeholder="Expected attendance" className="rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-sm" />
+          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-sm sm:col-span-2">
+            {["Holy Ghost Service", "Convention", "Youth Convention", "Service", "Crusade", "Workshop"].map((c) => <option key={c}>{c}</option>)}
+          </select>
+          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Short description" rows={2} className="rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-sm sm:col-span-2" />
+          <textarea value={form.prep_tips} onChange={(e) => setForm({ ...form, prep_tips: e.target.value })} placeholder="Prep tips for vendors (e.g. stock 2× capacity)" rows={2} className="rounded-lg border border-emerald-deep/15 bg-surface px-3 py-2 text-sm sm:col-span-2" />
+          {err && <p className="text-xs text-rose-600 sm:col-span-2">{err}</p>}
+          <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-deep px-4 py-2 text-sm font-semibold text-cream disabled:opacity-50 sm:col-span-2"><Plus className="h-4 w-4"/> {saving ? "Adding…" : "Add event"}</button>
+        </form>
+
+        {events.length > 0 && (
+          <ul className="mt-6 divide-y divide-emerald-deep/10">
+            {events.map((e) => (
+              <li key={e.id} className="flex items-start justify-between gap-3 py-3">
+                <div>
+                  <p className="font-semibold text-emerald-deep">{e.name} <span className="ml-2 text-[11px] font-normal text-emerald-deep/60">{e.category}</span></p>
+                  <p className="text-xs text-emerald-deep/60">{new Date(e.starts_at).toLocaleString()} · {e.location} {e.expected_attendance ? `· ${e.expected_attendance.toLocaleString()}+ attendees` : ""}</p>
+                </div>
+                <button onClick={() => remove(e.id)} className="rounded-full border border-rose-300 px-3 py-1 text-[11px] font-semibold text-rose-600"><Trash2 className="inline h-3 w-3"/> Delete</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
 
 function KycQueue({ vendors, reload }: { vendors: any[]; reload: () => void }) {
   const pending = vendors.filter((v) => v.kyc_status === "pending");
