@@ -92,10 +92,12 @@ function Dashboard() {
 
 function VendorOrdersPanel({ vendorId }: { vendorId: string }) {
   const [orders, setOrders] = useState<any[]>([]);
+  const [courierEdit, setCourierEdit] = useState<Record<string, { name: string; phone: string }>>({});
+
   async function load() {
     const { data } = await supabase.from("orders" as any)
       .select("*, order_items(*)").eq("vendor_id", vendorId)
-      .order("created_at", { ascending: false }).limit(20);
+      .order("created_at", { ascending: false }).limit(30);
     setOrders((data as any) ?? []);
   }
   useEffect(() => {
@@ -105,10 +107,20 @@ function VendorOrdersPanel({ vendorId }: { vendorId: string }) {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [vendorId]);
+
   async function setStatus(id: string, status: string) {
-    await supabase.from("orders" as any).update({ status }).eq("id", id);
+    const { error } = await supabase.from("orders" as any).update({ status }).eq("id", id);
+    if (error) toast.error(error.message); else toast.success(`Marked ${status.replace(/_/g, " ")}`);
   }
+  async function saveCourier(id: string) {
+    const c = courierEdit[id]; if (!c?.name) { toast.error("Courier name required"); return; }
+    const phone = c.phone ? (toE164Nigerian(c.phone) ?? c.phone) : null;
+    const { error } = await supabase.from("orders" as any).update({ courier_name: c.name, courier_phone: phone }).eq("id", id);
+    if (error) toast.error(error.message); else toast.success("Courier assigned");
+  }
+
   const pending = orders.filter((o) => o.status === "pending").length;
+
   return (
     <section className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-8">
       <div className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
@@ -123,28 +135,57 @@ function VendorOrdersPanel({ vendorId }: { vendorId: string }) {
           <p className="mt-6 text-sm text-emerald-deep/55">No orders yet. Share your vendor link to start receiving them.</p>
         ) : (
           <div className="mt-6 space-y-3">
-            {orders.map((o) => (
-              <div key={o.id} className="rounded-xl border border-emerald-deep/10 bg-cream p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-emerald-deep">{o.buyer_name || "Buyer"} · {o.buyer_phone}</p>
-                    <p className="text-xs text-emerald-deep/60">{new Date(o.created_at).toLocaleString()} · Zone {o.pickup_zone}</p>
+            {orders.map((o) => {
+              const isDelivery = o.fulfillment_type === "delivery";
+              const ce = courierEdit[o.id] ?? { name: o.courier_name ?? "", phone: o.courier_phone ?? "" };
+              return (
+                <div key={o.id} className="rounded-xl border border-emerald-deep/10 bg-cream p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-emerald-deep">{o.buyer_name || "Buyer"} · <a href={`tel:${o.buyer_phone}`} className="underline">{o.buyer_phone}</a></p>
+                      <p className="text-xs text-emerald-deep/60">
+                        {new Date(o.created_at).toLocaleString()} · {isDelivery ? "🛵 Delivery" : `📦 Pickup · Zone ${o.pickup_zone}`} · <code className="text-[10px]">{o.tracking_code}</code>
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-emerald-soft px-3 py-1 text-[11px] font-semibold uppercase text-emerald-deep">{o.status.replace(/_/g, " ")}</span>
                   </div>
-                  <span className="rounded-full bg-emerald-soft px-3 py-1 text-[11px] font-semibold uppercase text-emerald-deep">{o.status}</span>
+
+                  {isDelivery && o.delivery_address && (
+                    <p className="mt-2 rounded-md bg-emerald-soft/50 px-2 py-1 text-xs text-emerald-deep/80">📍 {o.delivery_address}{o.delivery_landmark ? ` · ${o.delivery_landmark}` : ""}</p>
+                  )}
+
+                  <ul className="mt-3 text-sm text-emerald-deep/85">
+                    {(o.order_items ?? []).map((i: any) => <li key={i.id}>• {i.quantity}× {i.name} — ₦{(i.unit_price_naira * i.quantity).toLocaleString()}</li>)}
+                  </ul>
+                  {o.notes && <p className="mt-2 text-xs text-emerald-deep/60">Note: {o.notes}</p>}
+
+                  {isDelivery && ["accepted", "preparing", "ready"].includes(o.status) && (
+                    <div className="mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-emerald-deep/15 bg-surface p-2">
+                      <div className="flex-1 min-w-[140px]">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-emerald-deep/60">Courier name</label>
+                        <input value={ce.name} onChange={(e) => setCourierEdit({ ...courierEdit, [o.id]: { ...ce, name: e.target.value } })} className="ed-input !py-1.5 !text-xs" placeholder="e.g. Tunde" />
+                      </div>
+                      <div className="flex-1 min-w-[140px]">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-emerald-deep/60">Courier phone</label>
+                        <input value={ce.phone} onChange={(e) => setCourierEdit({ ...courierEdit, [o.id]: { ...ce, phone: e.target.value } })} className="ed-input !py-1.5 !text-xs" placeholder="0803..." />
+                      </div>
+                      <button onClick={() => saveCourier(o.id)} className="rounded-full border border-emerald-deep px-3 py-1.5 text-[11px] font-semibold text-emerald-deep">Save courier</button>
+                    </div>
+                  )}
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {o.status === "pending" && <button onClick={() => setStatus(o.id, "accepted")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Accept</button>}
+                    {o.status === "accepted" && <button onClick={() => setStatus(o.id, "preparing")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Start preparing</button>}
+                    {o.status === "preparing" && <button onClick={() => setStatus(o.id, "ready")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Mark ready</button>}
+                    {o.status === "ready" && isDelivery && <button onClick={() => setStatus(o.id, "out_for_delivery")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Out for delivery</button>}
+                    {o.status === "ready" && !isDelivery && <button onClick={() => setStatus(o.id, "delivered")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Mark picked up</button>}
+                    {o.status === "out_for_delivery" && <button onClick={() => setStatus(o.id, "delivered")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Mark delivered</button>}
+                    {o.status !== "cancelled" && o.status !== "delivered" && <button onClick={() => setStatus(o.id, "cancelled")} className="rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold text-rose-600">Cancel</button>}
+                    <span className="ml-auto font-display text-sm font-bold text-emerald-deep tabular">₦{o.total_naira.toLocaleString()}</span>
+                  </div>
                 </div>
-                <ul className="mt-3 text-sm text-emerald-deep/85">
-                  {(o.order_items ?? []).map((i: any) => <li key={i.id}>• {i.quantity}× {i.name} — ₦{(i.unit_price_naira * i.quantity).toLocaleString()}</li>)}
-                </ul>
-                {o.notes && <p className="mt-2 text-xs text-emerald-deep/60">Note: {o.notes}</p>}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {o.status === "pending" && <button onClick={() => setStatus(o.id, "accepted")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Accept</button>}
-                  {o.status === "accepted" && <button onClick={() => setStatus(o.id, "ready")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Mark ready</button>}
-                  {o.status === "ready" && <button onClick={() => setStatus(o.id, "delivered")} className="rounded-full bg-emerald-deep px-3 py-1 text-xs font-semibold text-cream">Mark delivered</button>}
-                  {o.status !== "cancelled" && o.status !== "delivered" && <button onClick={() => setStatus(o.id, "cancelled")} className="rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold text-rose-600">Cancel</button>}
-                  <span className="ml-auto font-display text-sm font-bold text-emerald-deep tabular">₦{o.total_naira.toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
