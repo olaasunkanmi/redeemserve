@@ -25,12 +25,12 @@ export function useCart() {
     window.addEventListener("storage", h);
     return () => { window.removeEventListener("rs:cart", h); window.removeEventListener("storage", h); };
   }, []);
-  const add = useCallback((vendor_id: string, vendor_name: string, item: CartItem) => {
+  const add = useCallback((vendor_id: string, vendor_name: string, item: CartItem, vendor_category?: string) => {
     const cur = read();
     if (cur && cur.vendor_id !== vendor_id) {
       if (!confirm(`Your cart has items from ${cur.vendor_name}. Clear it and add from ${vendor_name}?`)) return;
     }
-    const base: Cart = cur && cur.vendor_id === vendor_id ? cur : { vendor_id, vendor_name, items: [] };
+    const base: Cart = cur && cur.vendor_id === vendor_id ? { ...cur, vendor_category: vendor_category ?? cur.vendor_category } : { vendor_id, vendor_name, vendor_category, items: [] };
     const ex = base.items.find((i) => i.name === item.name);
     if (ex) ex.quantity += item.quantity; else base.items.push(item);
     write(base);
