@@ -93,15 +93,15 @@ function Checkout() {
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-soft">
             <CheckCircle2 className="h-8 w-8 text-emerald-deep" />
           </div>
-          <h1 className="mt-6 font-display text-3xl font-extrabold text-emerald-deep">Order placed</h1>
-          <p className="mt-2 text-emerald-deep/65">The vendor has been notified. Track your order in real time.</p>
+          <h1 className="mt-6 font-display text-3xl font-extrabold text-emerald-deep">{isService ? "Booking confirmed" : "Order placed"}</h1>
+          <p className="mt-2 text-emerald-deep/65">{isService ? "The vendor will call to confirm your booking shortly." : "The vendor has been notified. Track your order in real time."}</p>
           <div className="mt-6 inline-flex flex-col items-center rounded-2xl border border-emerald-deep/15 bg-emerald-soft/50 px-6 py-4">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald">Tracking code</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald">{isService ? "Booking code" : "Tracking code"}</span>
             <span className="mt-1 font-display text-2xl font-extrabold text-emerald-deep">{done.code}</span>
-            <span className="mt-1 text-xs text-emerald-deep/60">Share this with anyone — no sign-in needed to track.</span>
+            <span className="mt-1 text-xs text-emerald-deep/60">Share this with anyone — no sign-in needed to {isService ? "view" : "track"}.</span>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/track/$code" params={{ code: done.code }} className="inline-flex items-center gap-2 rounded-full bg-emerald-deep px-5 py-3 text-sm font-semibold text-cream">Track this order <ArrowRight className="h-4 w-4" /></Link>
+            <Link to="/track/$code" params={{ code: done.code }} className="inline-flex items-center gap-2 rounded-full bg-emerald-deep px-5 py-3 text-sm font-semibold text-cream">{isService ? "View booking" : "Track this order"} <ArrowRight className="h-4 w-4" /></Link>
             <Link to="/orders" className="inline-flex items-center gap-2 rounded-full border border-emerald-deep px-5 py-3 text-sm font-semibold text-emerald-deep">My orders</Link>
           </div>
         </div>
