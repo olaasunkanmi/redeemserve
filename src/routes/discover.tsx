@@ -8,6 +8,7 @@ import {
   VENDOR_CATEGORIES, STATUS_META,
   type Vendor, type VendorCategory,
 } from "@/lib/vendors";
+import { categoryCopy, isServiceCategory } from "@/lib/categories";
 import {
   Search, X, MapPin, Clock, Phone, MessageCircle, Star, Plus, ArrowRight, Heart,
   Utensils, Bus, ShoppingBag, Wrench, HeartPulse, Smartphone, Store, SlidersHorizontal,
