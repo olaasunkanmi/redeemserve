@@ -163,11 +163,11 @@ function VendorOrdersPanel({ vendorId }: { vendorId: string }) {
                     <div className="mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-emerald-deep/15 bg-surface p-2">
                       <div className="flex-1 min-w-[140px]">
                         <label className="text-[10px] font-semibold uppercase tracking-wider text-emerald-deep/60">Courier name</label>
-                        <input value={ce.name} onChange={(e) => setCourierEdit({ ...courierEdit, [o.id]: { ...ce, name: e.target.value } })} className="ed-input !py-1.5 !text-xs" placeholder="e.g. Tunde" />
+                        <input value={ce.name} onChange={(e) => setCourierEdit({ ...courierEdit, [o.id]: { ...ce, name: e.target.value } })} className="w-full rounded-md border border-emerald-deep/20 bg-surface px-2 py-1.5 text-xs text-emerald-deep outline-none focus:border-emerald" placeholder="e.g. Tunde" />
                       </div>
                       <div className="flex-1 min-w-[140px]">
                         <label className="text-[10px] font-semibold uppercase tracking-wider text-emerald-deep/60">Courier phone</label>
-                        <input value={ce.phone} onChange={(e) => setCourierEdit({ ...courierEdit, [o.id]: { ...ce, phone: e.target.value } })} className="ed-input !py-1.5 !text-xs" placeholder="0803..." />
+                        <input value={ce.phone} onChange={(e) => setCourierEdit({ ...courierEdit, [o.id]: { ...ce, phone: e.target.value } })} className="w-full rounded-md border border-emerald-deep/20 bg-surface px-2 py-1.5 text-xs text-emerald-deep outline-none focus:border-emerald" placeholder="0803..." />
                       </div>
                       <button onClick={() => saveCourier(o.id)} className="rounded-full border border-emerald-deep px-3 py-1.5 text-[11px] font-semibold text-emerald-deep">Save courier</button>
                     </div>
