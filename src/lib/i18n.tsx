@@ -63,7 +63,7 @@ function saveCache(lang: Lang, cache: Record<string, string>) {
 function collectTextNodes(root: Node): Text[] {
   const out: Text[] = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
+    acceptNode(node: Node) {
       const parent = node.parentElement;
       if (!parent) return NodeFilter.FILTER_REJECT;
       if (SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
