@@ -74,6 +74,7 @@ function Dashboard() {
         <VendorForm existing={editing ? vendor : null} ownerId={user!.id} onDone={() => { setEditing(false); load(); }} />
       ) : (
         <>
+          <UpcomingEvents variant="vendor" limit={4} />
           <VendorOrdersPanel vendorId={vendor.id} />
           <KycPanel vendor={vendor as any} onChange={load} />
           <RevenuePanel vendor={vendor as any} onChange={load} />
