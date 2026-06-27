@@ -5,7 +5,8 @@ import { UpcomingEvents } from "@/components/site/UpcomingEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { VENDOR_CATEGORIES, ZONES, STATUS_META } from "@/lib/vendors";
 import { isValidNigerianPhone, toE164Nigerian, NG_PHONE_HINT } from "@/lib/phone";
-import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star, Sparkles, Zap, Crown, Wallet, ShieldCheck, Camera, FileText, IdCard, CheckCircle2, Upload } from "lucide-react";
+import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star, Sparkles, Zap, Crown, Wallet, ShieldCheck, Camera, FileText, IdCard, CheckCircle2, Upload, Power, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Vendor dashboard — RedeemServe" }] }),
