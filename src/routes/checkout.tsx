@@ -125,22 +125,29 @@ function Checkout() {
     <SiteLayout>
       <section className="mx-auto grid max-w-[1100px] gap-8 px-4 py-12 sm:px-8 lg:grid-cols-[1fr_22rem]">
         <form onSubmit={place} className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
-          <h1 className="font-display text-2xl font-extrabold text-emerald-deep">Checkout</h1>
-          <p className="mt-1 text-sm text-emerald-deep/60">Ordering from <strong>{cart.vendor_name}</strong></p>
+          <h1 className="font-display text-2xl font-extrabold text-emerald-deep">{isService ? `${copy.fulfillmentLabel}` : "Checkout"}</h1>
+          <p className="mt-1 text-sm text-emerald-deep/60">{isService ? "Booking with" : "Ordering from"} <strong>{cart.vendor_name}</strong></p>
 
           <div className="mt-6 grid gap-5">
-            <div>
-              <label className="text-xs font-semibold text-emerald-deep">How would you like to get it? <span className="text-rose-500">*</span></label>
-              <div className="mt-2 grid grid-cols-2 gap-3">
-                <FulfillmentCard active={!isDelivery} icon={<Package className="h-5 w-5" />} title="Pickup" sub="Collect from vendor" onClick={() => setF({ ...f, fulfillment: "pickup" })} />
-                <FulfillmentCard active={isDelivery} icon={<Truck className="h-5 w-5" />} title="Delivery" sub={`+ ₦${DELIVERY_FEE.toLocaleString()} in-camp`} onClick={() => setF({ ...f, fulfillment: "delivery" })} />
+            {isService ? (
+              <div className="rounded-xl border border-emerald-deep/15 bg-emerald-soft/40 p-4 text-xs text-emerald-deep/80">
+                <p className="flex items-center gap-2 font-semibold text-emerald-deep"><CalendarDays className="h-4 w-4" /> {copy.fulfillmentLabel}</p>
+                <p className="mt-1">{copy.fulfillmentHelp}</p>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label className="text-xs font-semibold text-emerald-deep">How would you like to get it? <span className="text-rose-500">*</span></label>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <FulfillmentCard active={!isDelivery} icon={<Package className="h-5 w-5" />} title="Pickup" sub="Collect from vendor" onClick={() => setF({ ...f, fulfillment: "pickup" })} />
+                  <FulfillmentCard active={isDelivery} icon={<Truck className="h-5 w-5" />} title="Delivery" sub={`+ ₦${DELIVERY_FEE.toLocaleString()} in-camp`} onClick={() => setF({ ...f, fulfillment: "delivery" })} />
+                </div>
+              </div>
+            )}
 
             <Field label="Your name" required>
               <input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="ed-input" placeholder="Full name" />
             </Field>
-            <Field label="Phone (vendor & courier will call)" required>
+            <Field label={isService ? "Phone (vendor will call to confirm)" : "Phone (vendor & courier will call)"} required>
               <input required type="tel" inputMode="tel" autoComplete="tel" value={f.phone}
                 onChange={(e) => setF({ ...f, phone: e.target.value })}
                 className={`ed-input ${f.phone && !isValidNigerianPhone(f.phone) ? "!border-rose-400" : ""}`}
@@ -148,7 +155,29 @@ function Checkout() {
               <p className="mt-1 text-[11px] text-emerald-deep/55">{NG_PHONE_HINT}</p>
             </Field>
 
-            {isDelivery ? (
+            {isService ? (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label={copy.scheduleLabel} required>
+                    <input required type="date" min={new Date().toISOString().slice(0,10)} value={f.bookingDate} onChange={(e) => setF({ ...f, bookingDate: e.target.value })} className="ed-input" />
+                  </Field>
+                  <Field label={copy.timeLabel}>
+                    <input type="time" value={f.bookingTime} onChange={(e) => setF({ ...f, bookingTime: e.target.value })} className="ed-input" />
+                  </Field>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label={copy.partyLabel} required>
+                    <input required type="number" min={1} max={50} value={f.party} onChange={(e) => setF({ ...f, party: Math.max(1, parseInt(e.target.value || "1", 10)) })} className="ed-input" />
+                  </Field>
+                  {copy.askDuration && (
+                    <Field label={copy.durationLabel!} required>
+                      <input required type="number" min={1} max={60} value={f.nights} onChange={(e) => setF({ ...f, nights: Math.max(1, parseInt(e.target.value || "1", 10)) })} className="ed-input" />
+                    </Field>
+                  )}
+                </div>
+                <p className="flex items-center gap-1.5 text-[11px] text-emerald-deep/55"><Users className="h-3 w-3" /> The vendor will confirm availability via call/SMS.</p>
+              </>
+            ) : isDelivery ? (
               <>
                 <Field label="Delivery address inside Redemption Camp" required>
                   <textarea required rows={2} value={f.address}
@@ -169,7 +198,7 @@ function Checkout() {
               </Field>
             )}
 
-            <Field label="Notes (allergies, time)">
+            <Field label={isService ? "Special requests" : "Notes (allergies, time)"}>
               <textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} className="ed-input resize-none" />
             </Field>
           </div>
