@@ -23,6 +23,7 @@ import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authenticated/favorites'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicTranslateRouteImport } from './routes/api/public/translate'
 import { Route as ApiPublicConciergeRouteImport } from './routes/api/public/concierge'
 import { Route as ApiPublicHooksForecastDemandRouteImport } from './routes/api/public/hooks/forecast-demand'
 
@@ -95,6 +96,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicTranslateRoute = ApiPublicTranslateRouteImport.update({
+  id: '/api/public/translate',
+  path: '/api/public/translate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicConciergeRoute = ApiPublicConciergeRouteImport.update({
   id: '/api/public/concierge',
   path: '/api/public/concierge',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/referrals': typeof AuthenticatedReferralsRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
+  '/api/public/translate': typeof ApiPublicTranslateRoute
   '/api/public/hooks/forecast-demand': typeof ApiPublicHooksForecastDemandRoute
 }
 export interface FileRoutesByTo {
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/referrals': typeof AuthenticatedReferralsRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
+  '/api/public/translate': typeof ApiPublicTranslateRoute
   '/api/public/hooks/forecast-demand': typeof ApiPublicHooksForecastDemandRoute
 }
 export interface FileRoutesById {
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
+  '/api/public/translate': typeof ApiPublicTranslateRoute
   '/api/public/hooks/forecast-demand': typeof ApiPublicHooksForecastDemandRoute
 }
 export interface FileRouteTypes {
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/referrals'
     | '/vendor/$id'
     | '/api/public/concierge'
+    | '/api/public/translate'
     | '/api/public/hooks/forecast-demand'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/referrals'
     | '/vendor/$id'
     | '/api/public/concierge'
+    | '/api/public/translate'
     | '/api/public/hooks/forecast-demand'
   id:
     | '__root__'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/_authenticated/referrals'
     | '/vendor/$id'
     | '/api/public/concierge'
+    | '/api/public/translate'
     | '/api/public/hooks/forecast-demand'
   fileRoutesById: FileRoutesById
 }
@@ -226,6 +238,7 @@ export interface RootRouteChildren {
   VendorsRoute: typeof VendorsRoute
   VendorIdRoute: typeof VendorIdRoute
   ApiPublicConciergeRoute: typeof ApiPublicConciergeRoute
+  ApiPublicTranslateRoute: typeof ApiPublicTranslateRoute
   ApiPublicHooksForecastDemandRoute: typeof ApiPublicHooksForecastDemandRoute
 }
 
@@ -329,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/translate': {
+      id: '/api/public/translate'
+      path: '/api/public/translate'
+      fullPath: '/api/public/translate'
+      preLoaderRoute: typeof ApiPublicTranslateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/concierge': {
       id: '/api/public/concierge'
       path: '/api/public/concierge'
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   VendorsRoute: VendorsRoute,
   VendorIdRoute: VendorIdRoute,
   ApiPublicConciergeRoute: ApiPublicConciergeRoute,
+  ApiPublicTranslateRoute: ApiPublicTranslateRoute,
   ApiPublicHooksForecastDemandRoute: ApiPublicHooksForecastDemandRoute,
 }
 export const routeTree = rootRouteImport
