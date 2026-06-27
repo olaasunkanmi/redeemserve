@@ -1,19 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { Link } from "@tanstack/react-router";
-import { Star, MapPin, Navigation } from "lucide-react";
-
-// Fix default icon (Vite bundles assets weirdly)
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
-const REDEMPTION_CITY = { lat: 6.8030, lng: 3.2130 };
+import { Star, MapPin, ExternalLink } from "lucide-react";
 
 type V = {
   id: string;
@@ -26,93 +12,83 @@ type V = {
   lng: number | null;
 };
 
-function statusColor(status: string) {
-  if (status === "live") return "#10b981";
-  if (status === "low-stock") return "#f59e0b";
-  return "#ef4444";
-}
+// Redemption Camp, Ofada 110113, Ogun State
+// https://share.google/p6X58jlIb3IgSfIGU
+const PLACE_QUERY = "Redemption Camp, Ofada 110113, Ogun State";
+const EMBED_SRC = `https://www.google.com/maps?q=${encodeURIComponent(PLACE_QUERY)}&z=15&output=embed`;
+const OPEN_IN_MAPS = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(PLACE_QUERY)}`;
 
-function RecenterButton({ vendors }: { vendors: V[] }) {
-  const map = useMap();
-  function fit() {
-    const pts = vendors.filter((v) => v.lat && v.lng).map((v) => [v.lat!, v.lng!] as [number, number]);
-    if (pts.length) map.fitBounds(pts as any, { padding: [40, 40] });
-    else map.setView(REDEMPTION_CITY, 16);
-  }
-  return (
-    <button
-      onClick={fit}
-      className="absolute right-3 top-3 z-[400] inline-flex items-center gap-1.5 rounded-full bg-cream/95 px-3 py-1.5 text-xs font-semibold text-emerald-deep shadow-card hover:bg-cream"
-    >
-      <Navigation className="h-3.5 w-3.5" /> Fit all
-    </button>
-  );
-}
-
-function NearMeButton() {
-  const map = useMap();
-  const [loading, setLoading] = useState(false);
-  function locate() {
-    if (!navigator.geolocation) return;
-    setLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        map.setView([pos.coords.latitude, pos.coords.longitude], 17);
-        L.circleMarker([pos.coords.latitude, pos.coords.longitude], { color: "#3b82f6", radius: 8 }).addTo(map);
-        setLoading(false);
-      },
-      () => setLoading(false),
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
-  }
-  return (
-    <button
-      onClick={locate}
-      disabled={loading}
-      className="absolute right-3 top-12 z-[400] inline-flex items-center gap-1.5 rounded-full bg-cream/95 px-3 py-1.5 text-xs font-semibold text-emerald-deep shadow-card hover:bg-cream disabled:opacity-60"
-    >
-      <MapPin className="h-3.5 w-3.5" /> {loading ? "Locating…" : "Near me"}
-    </button>
-  );
+function statusMeta(status: string) {
+  if (status === "live") return { dot: "bg-emerald-500", label: "Open" };
+  if (status === "low-stock") return { dot: "bg-amber-500", label: "Low" };
+  return { dot: "bg-rose-500", label: "Sold out" };
 }
 
 export function LiveMap({ vendors }: { vendors: V[] }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return <div ref={ref} className="aspect-square w-full rounded-2xl bg-emerald-soft/40" />;
-
-  const withCoords = vendors.filter((v) => v.lat && v.lng);
-
+  const top = vendors.slice(0, 8);
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-emerald-deep/10 shadow-card" style={{ height: 480 }}>
-      <MapContainer center={[REDEMPTION_CITY.lat, REDEMPTION_CITY.lng]} zoom={16} className="h-full w-full" scrollWheelZoom>
-        <TileLayer
-          attribution='&copy; OpenStreetMap'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    <div className="overflow-hidden rounded-2xl border border-emerald-deep/10 bg-surface shadow-card">
+      <div className="relative" style={{ height: 360 }}>
+        <iframe
+          title="Redemption Camp map"
+          src={EMBED_SRC}
+          className="absolute inset-0 h-full w-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
         />
-        <RecenterButton vendors={vendors} />
-        <NearMeButton />
-        {withCoords.map((v) => (
-          <CircleMarker
-            key={v.id}
-            center={[v.lat!, v.lng!]}
-            radius={10}
-            pathOptions={{ color: statusColor(v.status), fillColor: statusColor(v.status), fillOpacity: 0.85, weight: 2 }}
+        <a
+          href={OPEN_IN_MAPS}
+          target="_blank"
+          rel="noreferrer"
+          className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-cream/95 px-3 py-1.5 text-xs font-semibold text-emerald-deep shadow-card hover:bg-cream"
+        >
+          <ExternalLink className="h-3.5 w-3.5" /> Open in Google Maps
+        </a>
+      </div>
+      {top.length > 0 && (
+        <div className="border-t border-emerald-deep/10 p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-deep/60">
+            Nearby vendors at Redemption Camp
+          </p>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {top.map((v) => {
+              const s = statusMeta(v.status);
+              return (
+                <li key={v.id}>
+                  <Link
+                    to="/vendor/$id"
+                    params={{ id: v.id }}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-emerald-deep/10 bg-cream/40 px-3 py-2 hover:bg-emerald-soft/50"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-emerald-deep">{v.business_name}</p>
+                      <p className="truncate text-[11px] text-emerald-deep/60">
+                        {v.category} · Zone {v.zone}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2 text-[11px] text-emerald-deep/70">
+                      <span className="inline-flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> {Number(v.rating).toFixed(1)}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} /> {s.label}
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          <a
+            href={OPEN_IN_MAPS}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-emerald-deep hover:text-gold"
           >
-            <Popup>
-              <div className="min-w-[180px]">
-                <p className="font-display text-sm font-bold text-emerald-deep">{v.business_name}</p>
-                <p className="mt-0.5 text-[11px] text-emerald-deep/60">{v.category} · Zone {v.zone}</p>
-                <p className="mt-1 inline-flex items-center gap-1 text-[11px]"><Star className="h-3 w-3 fill-amber-500 text-amber-500" /> {Number(v.rating).toFixed(1)}</p>
-                <Link to="/vendor/$id" params={{ id: v.id }} className="mt-2 inline-block text-[11px] font-semibold text-emerald-deep underline">
-                  View vendor →
-                </Link>
-              </div>
-            </Popup>
-          </CircleMarker>
-        ))}
-      </MapContainer>
+            <MapPin className="h-3.5 w-3.5" /> Get directions to Redemption Camp →
+          </a>
+        </div>
+      )}
     </div>
   );
 }
