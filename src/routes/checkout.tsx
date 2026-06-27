@@ -207,7 +207,7 @@ function Checkout() {
           {!user && <p className="mt-4 text-sm text-emerald-deep/70">You'll be asked to sign in to place this order.</p>}
 
           <button disabled={placing} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-deep px-6 py-3 text-sm font-semibold text-cream hover:bg-emerald disabled:opacity-50">
-            {placing ? "Placing…" : `Place order · ₦${total.toLocaleString()}`} <ArrowRight className="h-4 w-4" />
+            {placing ? (isService ? "Booking…" : "Placing…") : `${isService ? "Confirm booking" : "Place order"} · ₦${total.toLocaleString()}`} <ArrowRight className="h-4 w-4" />
           </button>
           <style>{`.ed-input{width:100%;border:1px solid oklch(0.32 0.06 160 / 0.18);border-radius:10px;padding:.65rem .85rem;font-size:.9rem;color:var(--ink);background:var(--surface);outline:none}.ed-input:focus{border-color:var(--emerald);box-shadow:0 0 0 3px oklch(0.5 0.1 162 / 0.18)}`}</style>
         </form>
