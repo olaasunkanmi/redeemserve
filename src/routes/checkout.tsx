@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ZONES } from "@/lib/vendors";
 import { isValidNigerianPhone, toE164Nigerian, NG_PHONE_HINT } from "@/lib/phone";
-import { ShoppingBag, ArrowRight, CheckCircle2, MapPin, Package, Truck } from "lucide-react";
+import { categoryCopy, isServiceCategory } from "@/lib/categories";
+import { ShoppingBag, ArrowRight, CheckCircle2, MapPin, Package, Truck, CalendarDays, Users } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — RedeemServe" }] }),
@@ -19,20 +20,27 @@ function Checkout() {
   const { cart, total: subtotal, clear } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isService = isServiceCategory(cart?.vendor_category);
+  const copy = categoryCopy(cart?.vendor_category);
   const [f, setF] = useState({
     name: "",
     phone: "",
-    fulfillment: "pickup" as "pickup" | "delivery",
+    fulfillment: (isService ? "pickup" : "pickup") as "pickup" | "delivery",
     zone: "A",
     address: "",
     landmark: "",
     notes: "",
+    // booking fields (service vendors only)
+    bookingDate: "",
+    bookingTime: "",
+    party: 1,
+    nights: 1,
   });
   const [placing, setPlacing] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState<{ id: string; code: string } | null>(null);
 
-  const isDelivery = f.fulfillment === "delivery";
+  const isDelivery = !isService && f.fulfillment === "delivery";
   const deliveryFee = isDelivery ? DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee;
 
@@ -43,8 +51,16 @@ function Checkout() {
     if (!cart || !cart.items.length) return;
     const e164 = toE164Nigerian(f.phone);
     if (!e164) { setErr(NG_PHONE_HINT); return; }
-    if (isDelivery && f.address.trim().length < 6) { setErr("Please enter a delivery address inside Redemption Camp."); return; }
+    if (isService) {
+      if (!f.bookingDate) { setErr(`Please pick a ${copy.scheduleLabel.toLowerCase()}.`); return; }
+    } else if (isDelivery && f.address.trim().length < 6) {
+      setErr("Please enter a delivery address inside Redemption Camp."); return;
+    }
     setPlacing(true);
+    const bookingSummary = isService
+      ? `[${copy.fulfillmentLabel}] ${copy.scheduleLabel}: ${f.bookingDate}${f.bookingTime ? ` ${f.bookingTime}` : ""} · ${copy.partyLabel}: ${f.party}${copy.askDuration ? ` · ${copy.durationLabel}: ${f.nights}` : ""}`
+      : "";
+    const composedNotes = [bookingSummary, f.notes].filter(Boolean).join("\n");
     const { data: order, error } = await supabase.from("orders" as any).insert({
       buyer_id: user.id,
       vendor_id: cart.vendor_id,
@@ -55,10 +71,10 @@ function Checkout() {
       buyer_name: f.name,
       buyer_phone: e164,
       pickup_zone: f.zone,
-      fulfillment_type: f.fulfillment,
-      delivery_address: isDelivery ? f.address : "",
-      delivery_landmark: isDelivery ? f.landmark : "",
-      notes: f.notes,
+      fulfillment_type: isService ? "pickup" : f.fulfillment,
+      delivery_address: !isService && isDelivery ? f.address : "",
+      delivery_landmark: !isService && isDelivery ? f.landmark : "",
+      notes: composedNotes,
     }).select("id, tracking_code").single();
     if (error || !order) { setErr(error?.message ?? "Failed to place order"); setPlacing(false); return; }
     const oid = (order as any).id;
