@@ -7,8 +7,16 @@ export const Route = createFileRoute("/api/public/concierge")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const { query } = (await request.json()) as { query?: string };
+          const { query, language } = (await request.json()) as { query?: string; language?: string };
           if (!query || query.length < 2) return json({ error: "Query required" }, 400);
+          const langMap: Record<string, string> = {
+            en: "English",
+            yo: "Yoruba",
+            ig: "Igbo",
+            ha: "Hausa",
+            pcm: "Nigerian Pidgin English",
+          };
+          const langName = langMap[language || "en"] || "English";
 
           const supa = createClient<Database>(
             process.env.SUPABASE_URL!,
@@ -27,7 +35,7 @@ export const Route = createFileRoute("/api/public/concierge")({
           const apiKey = process.env.LOVABLE_API_KEY;
           if (!apiKey) return json({ answer: "AI is not configured yet.", vendors: [] });
 
-          const sys = `You are the RedeemServe concierge for Redemption City marketplace. Given a user's need, pick up to 3 vendors from the catalog that best match. Reply ONLY with valid JSON: {"answer": "<one warm sentence>", "vendors": [{"id":"<vendor uuid>","name":"<business name>","reason":"<why, <=15 words>"}]}. If nothing matches, return an empty vendors array and explain briefly.`;
+          const sys = `You are the RedeemServe concierge for Redemption City marketplace. Given a user's need, pick up to 3 vendors from the catalog that best match. The "answer" and each "reason" MUST be written in ${langName}. Reply ONLY with valid JSON: {"answer": "<one warm sentence in ${langName}>", "vendors": [{"id":"<vendor uuid>","name":"<business name as-is>","reason":"<why, <=15 words, in ${langName}>"}]}. If nothing matches, return an empty vendors array and briefly explain in ${langName}.`;
           const user = `Catalog:\n${list.map((l) => l.summary + " | id=" + l.id).join("\n")}\n\nUser query: ${query}`;
 
           const models = [
