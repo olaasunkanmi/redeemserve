@@ -104,7 +104,18 @@
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.78 0.12 80);
+
+  /* Remap brand tokens so existing utilities (text-emerald-deep, bg-cream,
+     bg-surface, bg-emerald-soft, text-ink) stay legible in dark mode. */
+  --emerald-deep: oklch(0.96 0.02 88);      /* was dark green → now near-white text */
+  --emerald: oklch(0.78 0.12 80);            /* hover/accent → gold */
+  --emerald-soft: oklch(0.28 0.04 160);      /* soft chip backgrounds → dark green */
+  --cream: oklch(0.2 0.025 160);             /* cream surfaces → dark card */
+  --surface: oklch(0.22 0.028 160);          /* surface → slightly lighter dark */
+  --ink: oklch(0.96 0.02 88);                /* body ink → near-white */
+  --gold-soft: oklch(0.3 0.05 80);
 }
+
 
 @layer base {
   * { border-color: var(--color-border); }
