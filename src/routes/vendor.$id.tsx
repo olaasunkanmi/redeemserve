@@ -133,21 +133,22 @@ function VendorPage() {
       <section className="mx-auto grid max-w-[1400px] gap-8 px-4 py-12 sm:px-8 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-8">
           <div className="rounded-2xl border border-emerald-deep/10 bg-surface p-6 shadow-card sm:p-8">
-            <h2 className="font-display text-2xl font-extrabold text-emerald-deep">Menu / Items</h2>
-            <p className="mt-1 text-sm text-emerald-deep/60">Price range: {v.price_range || "Contact vendor"}</p>
+            <h2 className="font-display text-2xl font-extrabold text-emerald-deep">{categoryCopy(v.category).itemsLabel}</h2>
+            <p className="mt-1 text-sm text-emerald-deep/60">Price range: {v.price_range || "Contact vendor"}{isServiceCategory(v.category) ? " · billed per booking" : ""}</p>
             <div className="mt-6 divide-y divide-emerald-deep/10">
-              {items.length === 0 && <p className="py-6 text-sm text-emerald-deep/55">Vendor hasn't listed items yet. Contact them directly to order.</p>}
+              {items.length === 0 && <p className="py-6 text-sm text-emerald-deep/55">{isServiceCategory(v.category) ? "Vendor hasn't listed services yet. Contact them directly to book." : "Vendor hasn't listed items yet. Contact them directly to order."}</p>}
               {items.map((item, i) => {
                 const price = basePrice + i * 250;
+                const copy = categoryCopy(v.category);
                 return (
                   <div key={item} className="flex items-center justify-between gap-4 py-4">
                     <div>
                       <p className="font-semibold text-emerald-deep">{item}</p>
-                      <p className="text-xs text-emerald-deep/60 tabular">₦{price.toLocaleString()}</p>
+                      <p className="text-xs text-emerald-deep/60 tabular">₦{price.toLocaleString()}{isServiceCategory(v.category) ? " · per booking" : ""}</p>
                     </div>
-                    <button onClick={() => add(v.id, v.business_name, { name: item, unit_price_naira: price, quantity: 1 })}
+                    <button onClick={() => add(v.id, v.business_name, { name: item, unit_price_naira: price, quantity: 1 }, v.category)}
                       className="inline-flex items-center gap-1.5 rounded-full bg-emerald-deep px-4 py-2 text-xs font-semibold text-cream hover:bg-emerald">
-                      <Plus className="h-3.5 w-3.5"/> Add
+                      <Plus className="h-3.5 w-3.5"/> {copy.action}
                     </button>
                   </div>
                 );
