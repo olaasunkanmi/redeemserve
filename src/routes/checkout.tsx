@@ -224,7 +224,7 @@ function Checkout() {
           </ul>
           <div className="mt-3 space-y-1 border-t border-emerald-deep/15 pt-3 text-sm text-emerald-deep/75">
             <div className="flex justify-between"><span>Subtotal</span><span className="tabular">₦{subtotal.toLocaleString()}</span></div>
-            <div className="flex justify-between"><span>{isDelivery ? "Delivery fee" : "Pickup"}</span><span className="tabular">{isDelivery ? `₦${DELIVERY_FEE.toLocaleString()}` : "Free"}</span></div>
+            <div className="flex justify-between"><span>{isService ? copy.fulfillmentLabel : isDelivery ? "Delivery fee" : "Pickup"}</span><span className="tabular">{isDelivery ? `₦${DELIVERY_FEE.toLocaleString()}` : isService ? "Included" : "Free"}</span></div>
           </div>
           <div className="mt-3 flex justify-between border-t border-emerald-deep/15 pt-3 font-display text-lg font-extrabold text-emerald-deep">
             <span>Total</span><span className="tabular">₦{total.toLocaleString()}</span>
