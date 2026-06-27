@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      events: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          expected_attendance: number | null
+          featured_image_url: string | null
+          id: string
+          location: string | null
+          name: string
+          prep_tips: string | null
+          starts_at: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          expected_attendance?: number | null
+          featured_image_url?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          prep_tips?: string | null
+          starts_at: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          expected_attendance?: number | null
+          featured_image_url?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          prep_tips?: string | null
+          starts_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string

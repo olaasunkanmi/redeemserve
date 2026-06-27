@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
 import { LiveStats } from "@/components/site/LiveStats";
+import { UpcomingEvents } from "@/components/site/UpcomingEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, VENDOR_CATEGORIES } from "@/lib/vendors";
 import cityAsset from "@/assets/redemption-city.jpg.asset.json";
@@ -133,6 +134,10 @@ function Home() {
       </section>
 
       <LiveStats />
+
+      <UpcomingEvents variant="public" limit={3} />
+
+
 
       {/* CATEGORIES */}
       <section className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8">
