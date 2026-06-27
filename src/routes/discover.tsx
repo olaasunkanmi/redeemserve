@@ -382,17 +382,18 @@ function VendorSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void 
 function ProductRow({ vendor, name, price }: { vendor: Vendor; name: string; price: number }) {
   const { add } = useCart();
   const [added, setAdded] = useState(false);
+  const copy = categoryCopy(vendor.category);
   return (
     <li className="flex items-center justify-between gap-3 px-4 py-3">
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-emerald-deep">{name}</p>
-        <p className="text-xs text-emerald-deep/60 tabular">₦{price.toLocaleString()}</p>
+        <p className="text-xs text-emerald-deep/60 tabular">₦{price.toLocaleString()}{isServiceCategory(vendor.category) ? " · per booking" : ""}</p>
       </div>
       <button
-        onClick={() => { add(vendor.id, vendor.name, { name, unit_price_naira: price, quantity: 1 }); setAdded(true); setTimeout(() => setAdded(false), 1200); }}
+        onClick={() => { add(vendor.id, vendor.name, { name, unit_price_naira: price, quantity: 1 }, vendor.category); setAdded(true); setTimeout(() => setAdded(false), 1200); }}
         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${added ? "bg-gold text-emerald-deep" : "bg-emerald-deep text-cream hover:bg-emerald"}`}
       >
-        <Plus className="h-3.5 w-3.5" /> {added ? "Added" : "Add"}
+        <Plus className="h-3.5 w-3.5" /> {added ? copy.addedLabel : copy.action}
       </button>
     </li>
   );
