@@ -7,8 +7,16 @@ export const Route = createFileRoute("/api/public/concierge")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const { query } = (await request.json()) as { query?: string };
+          const { query, language } = (await request.json()) as { query?: string; language?: string };
           if (!query || query.length < 2) return json({ error: "Query required" }, 400);
+          const langMap: Record<string, string> = {
+            en: "English",
+            yo: "Yoruba",
+            ig: "Igbo",
+            ha: "Hausa",
+            pcm: "Nigerian Pidgin English",
+          };
+          const langName = langMap[language || "en"] || "English";
 
           const supa = createClient<Database>(
             process.env.SUPABASE_URL!,
