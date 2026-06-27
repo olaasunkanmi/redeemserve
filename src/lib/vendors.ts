@@ -1,5 +1,6 @@
 export type VendorCategory =
   | "Food & Drinks"
+  | "Accommodation"
   | "Transport"
   | "Goods"
   | "Services"
@@ -28,6 +29,7 @@ export interface Vendor {
 
 export const VENDOR_CATEGORIES: VendorCategory[] = [
   "Food & Drinks",
+  "Accommodation",
   "Transport",
   "Goods",
   "Services",
