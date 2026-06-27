@@ -6,6 +6,7 @@ import { STATUS_META } from "@/lib/vendors";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/hooks/use-auth";
 import { Star, MapPin, Clock, Phone, MessageCircle, Heart, Plus, Minus, ShoppingBag, Share2, ShieldCheck } from "lucide-react";
+import { categoryCopy, isServiceCategory } from "@/lib/categories";
 
 export const Route = createFileRoute("/vendor/$id")({
   head: ({ params }) => ({
