@@ -5,7 +5,8 @@ import { UpcomingEvents } from "@/components/site/UpcomingEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { VENDOR_CATEGORIES, ZONES, STATUS_META } from "@/lib/vendors";
 import { isValidNigerianPhone, toE164Nigerian, NG_PHONE_HINT } from "@/lib/phone";
-import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star, Sparkles, Zap, Crown, Wallet, ShieldCheck, Camera, FileText, IdCard, CheckCircle2, Upload } from "lucide-react";
+import { ArrowRight, Play, TrendingUp, MapPin, Clock, Phone, LogOut, Pencil, Trash2, Store, Star, Sparkles, Zap, Crown, Wallet, ShieldCheck, Camera, FileText, IdCard, CheckCircle2, Upload, Power, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Vendor dashboard — RedeemServe" }] }),
@@ -78,7 +79,7 @@ function Dashboard() {
           <VendorOrdersPanel vendorId={vendor.id} />
           <KycPanel vendor={vendor as any} onChange={load} />
           <RevenuePanel vendor={vendor as any} onChange={load} />
-          <VendorDashboard vendor={vendor} onEdit={() => setEditing(true)} onDelete={async () => {
+          <VendorDashboard vendor={vendor} onReload={load} onEdit={() => setEditing(true)} onDelete={async () => {
             if (!confirm("Delete this vendor listing?")) return;
             await supabase.from("vendors").delete().eq("id", vendor.id);
             load();
@@ -369,7 +370,7 @@ function Field({ label, required, children }: { label: string; required?: boolea
   );
 }
 
-function VendorDashboard({ vendor, onEdit, onDelete }: { vendor: VendorRow; onEdit: () => void; onDelete: () => void }) {
+function VendorDashboard({ vendor, onEdit, onDelete, onReload }: { vendor: VendorRow; onEdit: () => void; onDelete: () => void; onReload: () => void }) {
   const forecast = {
     customers: vendor.expected_customers || Math.max(vendor.capacity * 3, 800),
     revenue: Math.max(vendor.capacity * 800, 200000),
@@ -379,9 +380,60 @@ function VendorDashboard({ vendor, onEdit, onDelete }: { vendor: VendorRow; onEd
   };
   const items = vendor.popular_items.slice(0, 4);
   const statusMeta = STATUS_META[(vendor.status === "closed" ? "sold-out" : vendor.status) as keyof typeof STATUS_META];
+  const isOpen = vendor.status !== "closed" && vendor.status !== "sold-out";
+  const [busy, setBusy] = useState<null | "open" | "close" | "lowstock" | "soldout">(null);
+
+  async function setStoreStatus(next: VendorRow["status"], key: "open" | "close" | "lowstock" | "soldout") {
+    setBusy(key);
+    const { error } = await supabase.from("vendors").update({ status: next }).eq("id", vendor.id);
+    setBusy(null);
+    if (error) { toast.error("Could not update store status"); return; }
+    toast.success(
+      next === "live" ? "Store is now OPEN — visible to attendees" :
+      next === "closed" ? "Store is now CLOSED — hidden from new orders" :
+      next === "low-stock" ? "Marked as Low stock" : "Marked as Sold out"
+    );
+    onReload();
+  }
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 py-12 sm:px-8">
+      <div className={`mb-6 rounded-2xl border p-5 shadow-card ${isOpen ? "border-emerald-deep/15 bg-emerald-soft/40" : "border-rose-300/60 bg-rose-50 dark:bg-rose-950/30"}`}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className={`grid h-11 w-11 place-items-center rounded-full ${isOpen ? "bg-emerald-deep text-cream" : "bg-rose-600 text-white"}`}>
+              {isOpen ? <Power className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald">Store status</p>
+              <h3 className="font-display text-lg font-bold text-emerald-deep">
+                {isOpen ? "Open — accepting orders" : vendor.status === "sold-out" ? "Sold out — hidden from buyers" : "Closed — hidden from buyers"}
+              </h3>
+              <p className="text-xs text-emerald-deep/65">Toggle anytime. Closed stores stop receiving new orders instantly.</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {isOpen ? (
+              <>
+                <button disabled={busy !== null} onClick={() => setStoreStatus("low-stock", "lowstock")} className="rounded-full border border-amber-400 px-3 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-50">
+                  {busy === "lowstock" ? "…" : "Mark low stock"}
+                </button>
+                <button disabled={busy !== null} onClick={() => setStoreStatus("sold-out", "soldout")} className="rounded-full border border-rose-300 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
+                  {busy === "soldout" ? "…" : "Mark sold out"}
+                </button>
+                <button disabled={busy !== null} onClick={() => { if (confirm("Close your store? Buyers won't be able to place new orders until you re-open.")) setStoreStatus("closed", "close"); }} className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50">
+                  <Power className="h-3.5 w-3.5" /> {busy === "close" ? "Closing…" : "Close store"}
+                </button>
+              </>
+            ) : (
+              <button disabled={busy !== null} onClick={() => setStoreStatus("live", "open")} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-deep px-4 py-2 text-xs font-bold text-cream hover:bg-emerald disabled:opacity-50">
+                <Power className="h-3.5 w-3.5" /> {busy === "open" ? "Opening…" : "Open store"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="mb-6 flex flex-wrap gap-2">
         <button onClick={onEdit} className="inline-flex items-center gap-2 rounded-full border border-emerald-deep px-4 py-2 text-xs font-semibold text-emerald-deep hover:bg-emerald-deep hover:text-cream">
           <Pencil className="h-3.5 w-3.5" /> Edit listing
@@ -393,6 +445,7 @@ function VendorDashboard({ vendor, onEdit, onDelete }: { vendor: VendorRow; onEd
           <Trash2 className="h-3.5 w-3.5" /> Delete
         </button>
       </div>
+
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Stat label="Expected customers" value={forecast.customers.toLocaleString()} sub="next service" />
