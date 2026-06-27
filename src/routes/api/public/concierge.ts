@@ -30,18 +30,35 @@ export const Route = createFileRoute("/api/public/concierge")({
           const sys = `You are the RedeemServe concierge for Redemption City marketplace. Given a user's need, pick up to 3 vendors from the catalog that best match. Reply ONLY with valid JSON: {"answer": "<one warm sentence>", "vendors": [{"id":"<vendor uuid>","name":"<business name>","reason":"<why, <=15 words>"}]}. If nothing matches, return an empty vendors array and explain briefly.`;
           const user = `Catalog:\n${list.map((l) => l.summary + " | id=" + l.id).join("\n")}\n\nUser query: ${query}`;
 
-          const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-            body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
-              messages: [{ role: "system", content: sys }, { role: "user", content: user }],
-              response_format: { type: "json_object" },
-            }),
-          });
-          if (!aiRes.ok) {
-            const t = await aiRes.text();
-            return json({ answer: "AI service busy — please retry in a moment.", vendors: [], debug: t.slice(0, 200) });
+          const models = [
+            "google/gemini-3-flash-preview",
+            "google/gemini-2.5-flash-lite",
+            "google/gemini-2.5-flash",
+          ];
+          let aiRes: Response | null = null;
+          let lastErr = "";
+          for (const model of models) {
+            aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+              body: JSON.stringify({
+                model,
+                messages: [{ role: "system", content: sys }, { role: "user", content: user }],
+                response_format: { type: "json_object" },
+              }),
+            });
+            if (aiRes.ok) break;
+            lastErr = `${model}: ${aiRes.status}`;
+            if (aiRes.status !== 429 && aiRes.status < 500) break;
+          }
+          if (!aiRes || !aiRes.ok) {
+            const t = aiRes ? await aiRes.text() : "";
+            const msg = aiRes?.status === 429
+              ? "I'm getting a lot of questions right now — please try again in a few seconds."
+              : aiRes?.status === 402
+              ? "AI credits are exhausted. Please ask the platform admin to top up."
+              : "I couldn't reach the AI service. Please try again shortly.";
+            return json({ answer: msg, vendors: [], debug: (lastErr + " " + t).slice(0, 300) });
           }
           const aiData = await aiRes.json();
           const raw = aiData.choices?.[0]?.message?.content ?? "{}";
