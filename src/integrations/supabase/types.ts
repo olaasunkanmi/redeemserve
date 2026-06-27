@@ -120,57 +120,137 @@ export type Database = {
           },
         ]
       }
+      order_tracking_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string
+          created_at: string
+          id: string
+          note: string | null
+          order_id: string
+          status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          order_id: string
+          status: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_tracking_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
+          accepted_at: string | null
           buyer_id: string
           buyer_name: string
           buyer_phone: string
+          cancelled_at: string | null
           commission_naira: number
           commission_rate: number
+          courier_name: string | null
+          courier_phone: string | null
           created_at: string
+          delivered_at: string | null
+          delivery_address: string
+          delivery_fee_naira: number
+          delivery_landmark: string
+          estimated_ready_minutes: number | null
+          fulfillment_type: string
           id: string
           notes: string
+          out_for_delivery_at: string | null
           pickup_zone: string
+          preparing_at: string | null
+          ready_at: string | null
           service_fee_naira: number
           status: string
           subtotal_naira: number | null
           total_naira: number
+          tracking_code: string | null
           updated_at: string
           vendor_id: string
           vendor_payout_naira: number
         }
         Insert: {
+          accepted_at?: string | null
           buyer_id: string
           buyer_name?: string
           buyer_phone?: string
+          cancelled_at?: string | null
           commission_naira?: number
           commission_rate?: number
+          courier_name?: string | null
+          courier_phone?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_address?: string
+          delivery_fee_naira?: number
+          delivery_landmark?: string
+          estimated_ready_minutes?: number | null
+          fulfillment_type?: string
           id?: string
           notes?: string
+          out_for_delivery_at?: string | null
           pickup_zone?: string
+          preparing_at?: string | null
+          ready_at?: string | null
           service_fee_naira?: number
           status?: string
           subtotal_naira?: number | null
           total_naira?: number
+          tracking_code?: string | null
           updated_at?: string
           vendor_id: string
           vendor_payout_naira?: number
         }
         Update: {
+          accepted_at?: string | null
           buyer_id?: string
           buyer_name?: string
           buyer_phone?: string
+          cancelled_at?: string | null
           commission_naira?: number
           commission_rate?: number
+          courier_name?: string | null
+          courier_phone?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_address?: string
+          delivery_fee_naira?: number
+          delivery_landmark?: string
+          estimated_ready_minutes?: number | null
+          fulfillment_type?: string
           id?: string
           notes?: string
+          out_for_delivery_at?: string | null
           pickup_zone?: string
+          preparing_at?: string | null
+          ready_at?: string | null
           service_fee_naira?: number
           status?: string
           subtotal_naira?: number | null
           total_naira?: number
+          tracking_code?: string | null
           updated_at?: string
           vendor_id?: string
           vendor_payout_naira?: number
@@ -477,6 +557,7 @@ export type Database = {
         Returns: boolean
       }
       redeem_referral_code: { Args: { _code: string }; Returns: boolean }
+      track_order: { Args: { _code: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "vendor" | "attendee"

@@ -18,6 +18,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorIdRouteImport } from './routes/vendor.$id'
+import { Route as TrackCodeRouteImport } from './routes/track.$code'
 import { Route as AuthenticatedReferralsRouteImport } from './routes/_authenticated/referrals'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authenticated/favorites'
@@ -69,6 +70,11 @@ const IndexRoute = IndexRouteImport.update({
 const VendorIdRoute = VendorIdRouteImport.update({
   id: '/vendor/$id',
   path: '/vendor/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackCodeRoute = TrackCodeRouteImport.update({
+  id: '/track/$code',
+  path: '/track/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedReferralsRoute = AuthenticatedReferralsRouteImport.update({
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/referrals': typeof AuthenticatedReferralsRoute
+  '/track/$code': typeof TrackCodeRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
   '/api/public/translate': typeof ApiPublicTranslateRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/referrals': typeof AuthenticatedReferralsRoute
+  '/track/$code': typeof TrackCodeRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
   '/api/public/translate': typeof ApiPublicTranslateRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/_authenticated/favorites': typeof AuthenticatedFavoritesRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
+  '/track/$code': typeof TrackCodeRoute
   '/vendor/$id': typeof VendorIdRoute
   '/api/public/concierge': typeof ApiPublicConciergeRoute
   '/api/public/translate': typeof ApiPublicTranslateRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/orders'
     | '/referrals'
+    | '/track/$code'
     | '/vendor/$id'
     | '/api/public/concierge'
     | '/api/public/translate'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/orders'
     | '/referrals'
+    | '/track/$code'
     | '/vendor/$id'
     | '/api/public/concierge'
     | '/api/public/translate'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/_authenticated/favorites'
     | '/_authenticated/orders'
     | '/_authenticated/referrals'
+    | '/track/$code'
     | '/vendor/$id'
     | '/api/public/concierge'
     | '/api/public/translate'
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   DiscoverRoute: typeof DiscoverRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VendorsRoute: typeof VendorsRoute
+  TrackCodeRoute: typeof TrackCodeRoute
   VendorIdRoute: typeof VendorIdRoute
   ApiPublicConciergeRoute: typeof ApiPublicConciergeRoute
   ApiPublicTranslateRoute: typeof ApiPublicTranslateRoute
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       path: '/vendor/$id'
       fullPath: '/vendor/$id'
       preLoaderRoute: typeof VendorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track/$code': {
+      id: '/track/$code'
+      path: '/track/$code'
+      fullPath: '/track/$code'
+      preLoaderRoute: typeof TrackCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/referrals': {
@@ -394,6 +414,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiscoverRoute: DiscoverRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VendorsRoute: VendorsRoute,
+  TrackCodeRoute: TrackCodeRoute,
   VendorIdRoute: VendorIdRoute,
   ApiPublicConciergeRoute: ApiPublicConciergeRoute,
   ApiPublicTranslateRoute: ApiPublicTranslateRoute,
