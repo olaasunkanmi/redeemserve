@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 export type CartItem = { name: string; unit_price_naira: number; quantity: number };
-export type Cart = { vendor_id: string; vendor_name: string; items: CartItem[] };
+export type Cart = { vendor_id: string; vendor_name: string; vendor_category?: string; items: CartItem[] };
 
 const KEY = "rs.cart.v1";
 
