@@ -6,7 +6,14 @@ import { createClient } from "@supabase/supabase-js";
 export const Route = createFileRoute("/api/public/hooks/forecast-demand")({
   server: {
     handlers: {
-      POST: async () => {
+      GET: async () => runForecast(),
+      POST: async () => runForecast(),
+    },
+  },
+});
+
+async function runForecast() {
+  return (async () => {
         const SUPABASE_URL = process.env.SUPABASE_URL!;
         const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
         const LOVABLE_KEY = process.env.LOVABLE_API_KEY!;
