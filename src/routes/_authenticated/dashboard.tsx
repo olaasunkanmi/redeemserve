@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
+import { UpcomingEvents } from "@/components/site/UpcomingEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { VENDOR_CATEGORIES, ZONES, STATUS_META } from "@/lib/vendors";
 import { isValidNigerianPhone, toE164Nigerian, NG_PHONE_HINT } from "@/lib/phone";
