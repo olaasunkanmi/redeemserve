@@ -355,8 +355,8 @@ function VendorSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void 
           {vendor.popularItems.length > 0 && (
             <div>
               <div className="flex items-end justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-deep/60">Menu / Products</p>
-                <Link to="/vendor/$id" params={{ id: vendor.id }} className="text-xs font-semibold text-emerald hover:text-emerald-deep">Full menu →</Link>
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-deep/60">{categoryCopy(vendor.category).itemsLabel}</p>
+                <Link to="/vendor/$id" params={{ id: vendor.id }} className="text-xs font-semibold text-emerald hover:text-emerald-deep">View all →</Link>
               </div>
               <ul className="mt-3 divide-y divide-emerald-deep/10 rounded-xl border border-emerald-deep/10">
                 {vendor.popularItems.map((name, i) => {
@@ -368,7 +368,7 @@ function VendorSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void 
           )}
           <div className="grid gap-3 pt-1 sm:grid-cols-2">
             <Link to="/vendor/$id" params={{ id: vendor.id }} className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-deep py-3 text-sm font-semibold text-cream hover:bg-emerald">
-              <ShoppingBag className="h-4 w-4" /> Open vendor & order
+              <ShoppingBag className="h-4 w-4" /> {isServiceCategory(vendor.category) ? "Open & book" : "Open vendor & order"}
             </Link>
             <Link to="/checkout" className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-deep py-3 text-sm font-semibold text-emerald-deep hover:bg-emerald-soft">
               Go to checkout <ArrowRight className="h-4 w-4" />
