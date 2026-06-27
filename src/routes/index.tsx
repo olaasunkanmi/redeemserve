@@ -135,6 +135,10 @@ function Home() {
 
       <LiveStats />
 
+      <UpcomingEvents variant="public" limit={3} />
+
+
+
       {/* CATEGORIES */}
       <section className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8">
         <div className="flex items-end justify-between">
